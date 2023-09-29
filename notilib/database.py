@@ -9,9 +9,20 @@ from dotenv import load_dotenv; load_dotenv()
 
 
 class Database:
+    """Main database connector class that establishes a constant
+    connection to the database that is shared throughout the program
+    by reusing the same instance of the class."""
+    # global class instance
     _instance = None
+
     conn: asyncpg.Connection = None
 
+    # define values within so that they can be overridden
+    host = os.getenv('postgres_host')
+    port = os.getenv('postgres_port')
+    database = os.getenv('postgres_database')
+    user = os.getenv("postgres_user")
+    password = os.getenv('postgres_password')
 
     # make sure only one instance exists
     def __new__(cls) -> Any:
@@ -29,11 +40,11 @@ class Database:
         if self.conn is None or self.conn.is_closed():
             try:
                 self.conn = await asyncpg.connect(
-                    host=os.getenv('postgres_host'),
-                    port=os.getenv('postgres_port'),
-                    database=os.getenv('postgres_database'),
-                    user=os.getenv("postgres_user"),
-                    password=os.getenv('postgres_password')
+                    host=self.host,
+                    port=self.port,
+                    database=self.database,
+                    user=self.user,
+                    password=self.password
                 )
                 print("Connected to PostgreSQL database!")
             except (Exception, asyncpg.PostgresError) as error:
@@ -48,3 +59,9 @@ class Database:
         if self.conn:
             await self.conn.close()
             print("Disconnected from PostgreSQL database.")
+
+
+    async def reconnect(self):
+        """Re-establishes the connection to the database"""
+        await self.close()
+        await self.connect()
