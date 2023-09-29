@@ -2,10 +2,15 @@
 
 
 import os
-import asyncpg
+import logging
 from typing import Any
 
+
+import asyncpg
+
 from dotenv import load_dotenv; load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 class Database:
@@ -46,9 +51,9 @@ class Database:
                     user=self.user,
                     password=self.password
                 )
-                print("Connected to PostgreSQL database!")
+                logger.info("Connected to PostgreSQL database!")
             except (Exception, asyncpg.PostgresError) as error:
-                print(f"Error while connecting to PostgreSQL: {error}")
+                logger.info(f"Error while connecting to PostgreSQL: {error}")
                 return
 
         return self.conn
@@ -58,7 +63,7 @@ class Database:
         """Closes are database connection"""
         if self.conn:
             await self.conn.close()
-            print("Disconnected from PostgreSQL database.")
+            logger.info("Disconnected from PostgreSQL database.")
 
 
     async def reconnect(self):
