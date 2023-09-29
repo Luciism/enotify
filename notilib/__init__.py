@@ -8,6 +8,7 @@ from .loggers.utils import *
 from .accounts import *
 from .account_manager import *
 from .database import *
+from .exceptions import *
 from .functions import *
 from .permissions import *
 

@@ -3,14 +3,23 @@
 
 from datetime import datetime
 
-from .accounts import get_account, set_account_blacklist, create_account
-from .permissions import has_permission, PermissionManager
+from .accounts import (
+    get_account,
+    set_account_blacklist,
+    create_account,
+    delete_account
+)
+from .permissions import PermissionManager, has_permission
 from .functions import comma_separated_to_list
 
 
 class AccountDeleteConfirm:
+    def __init__(self, discord_id: int):
+        self._discord_id = discord_id
+
+
     async def confirm(self):
-        raise NotImplementedError('Deletion system not implemented!')
+        await delete_account(self._discord_id, confirm=True)
 
 
 class Account:
@@ -97,8 +106,8 @@ class Account:
 
 
     def delete(self) -> AccountDeleteConfirm:
-        """Delete the account (NOT IMPLEMENTED)"""
-        return AccountDeleteConfirm()
+        """Delete the account MUST CALL `.confirm()`"""
+        return AccountDeleteConfirm(self.discord_id)
 
 
     async def set_blacklisted(self, blacklisted: bool=True):

@@ -8,6 +8,7 @@ import asyncpg
 
 from .functions import create_query_placeholders
 from .database import Database
+from .exceptions import ConfirmationError
 
 
 class AccountDataTuple(NamedTuple):
@@ -77,6 +78,20 @@ async def create_account(
         *tuple(data.values()))
 
     return True
+
+
+async def delete_account(discord_id: int, confirm: bool=False):
+    """
+    Entirely erase an account from existence
+    :param discord_id: the discord id of the account to delete
+    :param confirm: must `True` in order to delete the account
+    """
+    if confirm is False:
+        raise ConfirmationError(
+            'Param `confirm` must be `True` in order to delete an account!')
+
+    conn = await Database().connect()
+    await conn.execute('DELETE FROM accounts WHERE discord_id = $1', discord_id)
 
 
 async def __select_account_data(discord_id: int, conn: asyncpg.Connection):
