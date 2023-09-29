@@ -65,7 +65,13 @@ class Account:
 
             return
 
+        # default values of the account doesn't exist
         self._exists = False
+
+        self._account_id = None
+        self._creation_timestamp = None
+        self._permissions = []
+        self._blacklisted = False
 
 
     async def create(self,
