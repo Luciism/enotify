@@ -38,7 +38,9 @@ class Database:
 
     async def connect(self) -> asyncpg.Connection:
         """
-        Connects to the database
+        Connects to the database\\
+        This operation is in place, but for convenience sake,\
+            the connection is also returned
         :return: the `asyncpg.Connection` object of the connection (self.conn)
         """
         # connect if connection doesnt exist or is closed
