@@ -1,7 +1,7 @@
 import os
 from urllib.parse import urljoin
 
-from flask import Blueprint, redirect, request, session
+from quart import Blueprint, redirect, request, session
 
 from notilib import Database
 from helper import (
@@ -24,7 +24,7 @@ callback_redirect_uri = urljoin(os.getenv('base_url'), '/discord/callback')
 
 
 @discord_bp.route('/discord/authorize')
-def authorize():
+async def authorize():
     # custom `state` url param to persist throughout the auth and callback
     state = request.args.get('state')
 

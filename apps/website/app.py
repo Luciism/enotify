@@ -1,10 +1,11 @@
 import os
 import logging
 
-from flask import Flask
+from quart import Quart
 from dotenv import load_dotenv; load_dotenv()
 
 from notilib import setup_logging, Database
+from helper import QuartClient
 
 from blueprints.gmail.gmail import gmail_bp
 from blueprints.discord.discord import discord_bp
@@ -15,28 +16,32 @@ setup_logging()
 logger = logging.getLogger('enotify.apps.website')
 
 
-# -------------------------- DATABASE -------------------------- #
-db = Database()
-
-# set cleanup code to close the connection on cleanup
-@db.on_cleanup
-async def on_cleanup():
-    if db._pool:
-        db._pool.terminate()
-
 # ---------------------------- APP ---------------------------- #
-app = Flask(__name__)
+app = QuartClient(__name__)
 app.config['SECRET_KEY'] = os.getenv('flask_secret_key')
 
 app.register_blueprint(gmail_bp)
 app.register_blueprint(discord_bp)
 
+# -------------------------- DATABASE -------------------------- #
+db = Database()
+
+@app.before_serving
+async def create_db_pool():
+    await db._create_pool()
+
+
+@app.after_serving
+async def close_db_pool():
+    await db.pool.close()
+    db.pool.terminate()
+
 
 # ---------------------------- MISC --------------------------- #
 @app.route('/test-pub-sub', methods=['GET', 'POST'])
-def test_pub_sub(): return {'success': True}
+async def test_pub_sub(): return {'success': True}
 
 
 # ---------------------------- RUN ---------------------------- #
 if __name__ == "__main__":
-    app.run(host="0.0.0.0")
+    app.run(host="0.0.0.0", debug=True)

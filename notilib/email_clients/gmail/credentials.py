@@ -2,12 +2,11 @@ import os
 import json
 
 from aiogoogle.auth.creds import ClientCreds, UserCreds
+from asyncpg import Connection
 from cryptography.fernet import Fernet
 
-from ...database import Database
+from ...database import ensure_connection
 
-
-db = Database()
 
 client_creds = ClientCreds(
     client_id=os.getenv('gcloud_client_id'),
@@ -44,10 +43,12 @@ def decrypt_credentials(credentials: bytes | str) -> dict:
     return json.loads(creds_str)
 
 
+@ensure_connection
 async def save_user_credentials(
     discord_id: int,
     email_address: str,
-    credentials: dict
+    credentials: dict,
+    conn: Connection=None
 ) -> None:
     """
     Save a user's credentials to the database
@@ -56,10 +57,10 @@ async def save_user_credentials(
     :param email_address: the email address for the google account that the\
         credentials are tied to
     :param credentials: the encrypted google oauth credentials
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically
     """
     encrypted_credentials = encrypt_credentials(credentials)
-
-    conn = await db.connect()
 
     current = await conn.fetchrow(
         'SELECT * FROM gmail_credentials WHERE discord_id = $1 AND email_address = $2',
@@ -79,10 +80,11 @@ async def save_user_credentials(
             encrypted_credentials, discord_id, email_address
         )
 
-
+@ensure_connection
 async def load_user_credentials(
     discord_id: int,
-    email_address: str
+    email_address: str,
+    conn: Connection=None
 ) -> UserCreds | None:
     """
     Loads specified user credentials from the database
@@ -91,8 +93,6 @@ async def load_user_credentials(
     :param email_address: the email address of the account that the credentials\
         are tied to
     """
-    conn = await db.connect()
-
     credentials = await conn.fetchrow(
         'SELECT * FROM gmail_credentials WHERE discord_id = $1 AND email_address = $2',
         discord_id, email_address)

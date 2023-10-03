@@ -139,7 +139,10 @@ async def _fetch_discord_user(access_token: str, cache: bool=False):
             return await _fetch_discord_user_req(access_token, session)
 
     # use `aiohttp_client_cache.CachedSession()` with custom sqlite3 backend
-    async with CachedSession(cache=cache_backend) as session:
+    async with CachedSession(
+        cache=SQLiteBackend(
+            cache_name='.cache/cache', expire_after=150)
+    ) as session:
         return await _fetch_discord_user_req(access_token, session)
 
 

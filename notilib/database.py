@@ -3,7 +3,6 @@
 
 import os
 import logging
-from asyncio import AbstractEventLoop
 from functools import wraps
 from typing import Any, Coroutine
 
@@ -31,40 +30,38 @@ class Database:
     password = os.getenv('postgres_password')
 
     # make sure only one instance exists (singleton)
-    def __new__(cls, *args, **kwargs) -> Any:
+    def __new__(cls) -> Any:
         if cls._instance is None:
             cls._instance = super(Database, cls).__new__(cls)
         return cls._instance
 
 
     # global connection pool
-    _pool: asyncpg.pool.Pool = None
+    pool: asyncpg.pool.Pool = None
 
 
-    async def _create_pool(self, loop: AbstractEventLoop=None) -> asyncpg.Pool:
-        self._pool = await asyncpg.create_pool(
-            loop=loop,
-
+    async def _create_pool(self) -> asyncpg.Pool:
+        self.pool = await asyncpg.create_pool(
             host=self.host,
             port=self.port,
             database=self.database,
             user=self.user,
             password=self.password
         )
-        return self._pool
+        return self.pool
 
 
-    async def connect(self) -> asyncpg.Connection:
-        if self._pool is None or self._pool._closed:
+    async def connect(self) -> asyncpg.Pool:
+        if self.pool is None or self.pool._closed:
             await self._create_pool()
-            logger.info("Connected to PostgreSQL database!")
-        return self._pool.acquire(timeout=5)
+            logger.info("Created new database connection pool.")
+        return self.pool
 
 
     async def close(self):
-        if self._pool:
-            await self._pool.close()
-            logger.info("Disconnected from PostgreSQL database.")
+        if self.pool:
+            await self.pool.close()
+            logger.info("Closed the database connection pool.")
 
 
     async def reconnect(self):
@@ -108,7 +105,9 @@ def ensure_connection(func):
         if conn:  # use provided connection
             return await func(*args, **kwargs)
 
-        async with await Database().connect() as conn:  # otherwise, acquire new connection
+        pool = await Database().connect()
+
+        async with pool.acquire() as conn:  # otherwise, acquire new connection
             kwargs['conn'] = conn
             return await func(*args, **kwargs)
     return wrapper

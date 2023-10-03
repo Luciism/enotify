@@ -1,7 +1,7 @@
 from typing import Any
 
-from flask import current_app, request
-from flask.sessions import SecureCookieSessionInterface
+from quart import current_app, request
+from quart.sessions import SecureCookieSessionInterface
 
 
 def decrypt_session_cookie(session_cookie: str=None) -> dict | Any:

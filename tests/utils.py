@@ -17,7 +17,8 @@ def execute_in_transaction(coro):
     @wraps(coro)
     async def wrapper(*args, **kwargs):
         try:
-            async with await db.connect() as conn:
+            pool = await db.connect()
+            async with pool.acquire() as conn:
                 conn: Connection
                 async with conn.transaction():
                     # execute coroutine in transaction

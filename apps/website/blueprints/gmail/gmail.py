@@ -1,7 +1,7 @@
 from aiogoogle import HTTPError
 from aiogoogle.auth import UserCreds
 from aiogoogle.auth.managers import Oauth2Manager
-from flask import (
+from quart import (
     Blueprint,
     redirect,
     request,
@@ -24,7 +24,7 @@ oauth2 = Oauth2Manager(client_creds=gmail.client_creds)
 
 
 @gmail_bp.route('/gmail/authorize')
-def authorize():
+async def authorize():
     uri = oauth2.authorization_url(
         client_creds=gmail.client_creds,
         state=request.cookies.get('session')
@@ -46,11 +46,8 @@ async def callback():
     for key, value in session_cookie.items():
         session[key] = value
 
-    # FIXME session cookie gets deleted when called back
-
     # make sure the user is logged in
     access_token = session.get('access_token')
-    print(access_token)
     user = await fetch_discord_user(access_token, cache=True)
 
     if user is None:
