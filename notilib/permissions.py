@@ -1,20 +1,20 @@
 """A permissions system"""
 
+from asyncpg import Connection
 
 from .functions import comma_separated_to_list
 from .accounts import create_account, get_account
-from .database import Database
+from .database import ensure_connection
 
 
-db = Database()
-
-
-async def get_permissions(discord_id: int) -> list:
+async def get_permissions(discord_id: int, conn: Connection=None) -> list:
     """
     Returns list of permissions for a discord user
     :param discord_id: the discord id of the respective user
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically
     """
-    account_data = await get_account(discord_id, create=True)
+    account_data = await get_account(discord_id, create=True, conn=conn)
 
     if account_data:
         # convert comma seperated list of permissions to list
@@ -25,7 +25,8 @@ async def get_permissions(discord_id: int) -> list:
 async def has_permission(
     discord_id: int,
     permissions: str | list[str],
-    allow_star: bool=True
+    allow_star: bool=True,
+    conn: Connection=None
 ) -> bool:
     """
     Returns bool `True` or `False` if a user has a permission
@@ -34,8 +35,10 @@ async def has_permission(
         are provided, `True` will be returned if the user has
         at least one of the given permissions.
     :param allow_star: returns `True` if the user has the `*` permission
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically
     """
-    user_permissions = await get_permissions(discord_id)
+    user_permissions = await get_permissions(discord_id, conn)
 
     # return True to any permissions if the user has the "*" permission
     # and star permissions are allowed
@@ -53,9 +56,11 @@ async def has_permission(
     return False
 
 
+@ensure_connection
 async def set_permissions(
     discord_id: int,
-    permissions: list | str
+    permissions: list | str,
+    conn: Connection=None
 ) -> None:
     """
     Sets a users permissions to the given permissions\n
@@ -63,61 +68,67 @@ async def set_permissions(
     or as a string with commas `,` as seperators
     :param discord_id: the discord id of the respective user
     :param permissions: the permissions to set for the user
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically
     """
     # join list of permissions into a comma seperated list
     if isinstance(permissions, list):
         permissions = ','.join(permissions)
 
-    await db.connect()
-
-    account_data = await db.conn.execute(
+    account_data = await conn.execute(
         'SELECT account_id FROM accounts WHERE discord_id = $1', discord_id)
 
     if account_data:
         # if account exists, update the account's permissions
-        await db.conn.execute(
+        await conn.execute(
             'UPDATE accounts SET permissions = $1 WHERE discord_id = $2',
             permissions, discord_id
         )
     else:
         # otherwise create a new account with the correct permissions
-        await create_account(discord_id, permissions=permissions)
+        await create_account(discord_id, permissions=permissions, conn=conn)
 
 
 async def add_permission(
     discord_id: int,
-    permission: str
+    permission: str,
+    conn: Connection=None
 ) -> None:
     """
     Adds a permission to a user if they don't already have it
     :param discord_id: the discord id of the respective user
     :param permission: the permission to add to the user
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically
     """
-    permissions = await get_permissions(discord_id)
+    permissions = await get_permissions(discord_id, conn)
 
     # if the user doesnt already have the permission, add it
     if not permission in permissions:
         permissions.append(permission)
-        await set_permissions(discord_id, permissions)
+        await set_permissions(discord_id, permissions, conn)
 
 
 async def remove_permission(
     discord_id: int,
-    permission: str
+    permission: str,
+    conn: Connection=None
 ) -> None:
     """
     Removes a permission for a user if they have it
     :param discord_id: the discord id of the respective user
     :param permission: the permission to remove from the user
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically
     """
-    permissions = await get_permissions(discord_id)
+    permissions = await get_permissions(discord_id, conn)
 
     # if user has permission, recursively remove all instances of that
     # permission from the list of permissions
     if permission in permissions:
         while permission in permissions:
             permissions.remove(permission)
-        await set_permissions(discord_id, permissions)
+        await set_permissions(discord_id, permissions, conn)
 
 
 class PermissionManager:
@@ -132,45 +143,66 @@ class PermissionManager:
         self.discord_id = discord_id
 
 
-    async def add_permission(self, permission: str):
+    async def add_permission(self, permission: str, conn: Connection=None) -> None:
         """
         Adds a permission to a user if they don't already have it
         :param permission: the permission to add to the user
+        :param conn: an open database connection to execute on, if left as `None`,\
+            one will be acquired automatically
         """
-        await add_permission(self.discord_id, permission)
+        await add_permission(self.discord_id, permission, conn)
 
 
-    async def remove_permission(self, permission: str):
+    async def remove_permission(
+        self,
+        permission: str,
+        conn: Connection=None
+    ) -> None:
         """
         Removes a permission for a user if they have it
         :param permission: the permission to remove from the user
+        :param conn: an open database connection to execute on, if left as `None`,\
+            one will be acquired automatically
         """
-        await remove_permission(self.discord_id, permission)
+        await remove_permission(self.discord_id, permission, conn)
 
 
-    async def set_permissions(self, permissions: list | str):
+    async def set_permissions(
+        self,
+        permissions: list | str,
+        conn: Connection=None
+    ) -> None:
         """
         Sets a users permissions to the given permissions\n
         Permissions can either be a list of permissions as a list
         or as a string with commas `,` as seperators
         :param permissions: the permissions to set for the user
+        :param conn: an open database connection to execute on, if left as `None`,\
+            one will be acquired automatically
         """
-        await set_permissions(self.discord_id, permissions)
+        await set_permissions(self.discord_id, permissions, conn)
 
 
-    async def get_permissions(self):
-        """Returns list of permissions for a discord user"""
-        return await get_permissions(self.discord_id)
+    async def get_permissions(self, conn: Connection=None) -> list:
+        """
+        Returns list of permissions for a discord user
+        :param conn: an open database connection to execute on, if left as `None`,\
+            one will be acquired automatically
+        """
+        return await get_permissions(self.discord_id, conn)
 
 
     async def has_permission(
         self,
         permissions: str | list[str],
-        allow_star: bool=True
+        allow_star: bool=True,
+        conn: Connection=None
     ) -> bool:
         """
         Returns bool `True` or `False` if a user has a permission
         :param permission: the permission to check for
         :param allow_star: returns `True` if the user has the `*` permission
+        :param conn: an open database connection to execute on, if left as `None`,\
+            one will be acquired automatically
         """
-        return await has_permission(self.discord_id, permissions, allow_star)
+        return await has_permission(self.discord_id, permissions, allow_star, conn)

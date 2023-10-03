@@ -7,7 +7,7 @@ from typing import NamedTuple
 import asyncpg
 
 from .functions import create_query_placeholders
-from .database import Database
+from .database import ensure_connection
 from .exceptions import ConfirmationError
 
 
@@ -20,14 +20,27 @@ class AccountDataTuple(NamedTuple):
     blacklisted: int
 
 
-async def __create_account(
+@ensure_connection
+async def create_account(
     discord_id: int,
-    account_id: int,
-    creation_timestamp: float,
-    permissions: list | str,
-    blacklisted: bool,
-    conn: asyncpg.Pool
+    account_id: int=None,
+    creation_timestamp: float=None,
+    permissions: list | str=None,
+    blacklisted: bool=False,
+    conn: asyncpg.Pool=None
 ) -> bool:
+    """
+    Creates a new account for a user if ones doesn't already exist
+    :param discord_id: the discord id of the respective user
+    :param account_id: override the autoincrement account id
+    :param creation_timestamp: override the creation timestamp of the account
+    :param permissions: set the permissions for the user
+    :param blacklisted: set whether the accounts is blacklisted
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically
+
+    :return: bool of whether or not the account was created
+    """
     existing_account = await conn.fetchrow(
         'SELECT * FROM accounts WHERE discord_id = $1', discord_id)
 
@@ -67,41 +80,12 @@ async def __create_account(
     return True
 
 
-async def create_account(
-    discord_id: int,
-    account_id: int=None,
-    creation_timestamp: float=None,
-    permissions: list | str=None,
-    blacklisted: bool=False,
-    conn: asyncpg.Pool=None
-) -> bool:
-    """
-    Creates a new account for a user if ones doesn't already exist
-    :param discord_id: the discord id of the respective user
-    :param account_id: override the autoincrement account id
-    :param creation_timestamp: override the creation timestamp of the account
-    :param permissions: set the permissions for the user
-    :param blacklisted: set whether the accounts is blacklisted
-    :param conn: an open database connection to execute on, if left as `None`,\
-        one will be acquired automatically
-
-    :return: bool of whether or not the account was created
-    """
-    if conn:  # use provided connection
-        return await __create_account(
-            discord_id, account_id, creation_timestamp, permissions, blacklisted, conn)
-
-    async with await Database().connect() as conn:  # otherwise, acquire new connection
-        # check if the account exists and return if it does
-        return await __create_account(
-            discord_id, account_id, creation_timestamp, permissions, blacklisted, conn)
-
-
+@ensure_connection
 async def delete_account(
     discord_id: int,
     confirm: bool=False,
     conn: asyncpg.Pool=None
-):
+) -> None:
     """
     Entirely erase an account from existence
     :param discord_id: the discord id of the account to delete
@@ -114,25 +98,27 @@ async def delete_account(
         raise ConfirmationError(
             'Param `confirm` must be `True` in order to delete an account!')
 
-    if conn:
-        await conn.execute('DELETE FROM accounts WHERE discord_id = $1', discord_id)
-        return
-
-    async with await Database().connect() as conn:
-        await conn.execute('DELETE FROM accounts WHERE discord_id = $1', discord_id)
+    await conn.execute('DELETE FROM accounts WHERE discord_id = $1', discord_id)
 
 
 async def __select_account_data(discord_id: int, conn: asyncpg.Connection):
-    row = await conn.fetchrow(
+    return await conn.fetchrow(
         'SELECT * FROM accounts WHERE discord_id = $1', discord_id)
-    return row
 
 
-async def __get_account(
+@ensure_connection
+async def get_account(
     discord_id: int,
-    create: bool,
-    conn: asyncpg.Pool
+    create: bool=False,
+    conn: asyncpg.Pool=None
 ) -> AccountDataTuple | None:
+    """
+    Gets the account data for a user
+    :param discord_id: the discord id of the user to get the account data for
+    :param create: if an account should be created if one does not already exists
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically
+    """
     account_data = await __select_account_data(discord_id, conn)
 
     if account_data is None:
@@ -148,45 +134,7 @@ async def __get_account(
     return AccountDataTuple(*account_data)
 
 
-async def get_account(
-    discord_id: int,
-    create: bool=False,
-    conn: asyncpg.Pool=None
-) -> AccountDataTuple | None:
-    """
-    Gets the account data for a user
-    :param discord_id: the discord id of the user to get the account data for
-    :param create: if an account should be created if one does not already exists
-    :param conn: an open database connection to execute on, if left as `None`,\
-        one will be acquired automatically
-    """
-    if conn:
-        return await __get_account(discord_id, create, conn)
-
-    async with await Database().connect() as conn:
-        return await __get_account(discord_id, create, conn)
-
-
-async def __set_account_blacklist(
-    discord_id: int,
-    blacklisted: bool,
-    create: bool,
-    conn: asyncpg.Pool
-):
-    # check if account exists
-    account_data = await __select_account_data(discord_id, conn)
-    if not account_data:
-        # create account with blacklist setting if "create if not exists" is true
-        if create:
-            await create_account(discord_id, blacklisted=blacklisted, conn=conn)
-        return
-
-    # update existing account blacklist value
-    await conn.execute(
-        'UPDATE accounts SET blacklisted = $1 WHERE discord_id = $2',
-        int(blacklisted), discord_id)
-
-
+@ensure_connection
 async def set_account_blacklist(
     discord_id: int,
     blacklisted: bool=True,
@@ -200,9 +148,15 @@ async def set_account_blacklist(
     :param blacklisted: whether to blacklist or unblacklist the user
     :param create: whether or not to create the account if it doesn't exist
     """
-    if conn:
-        await __set_account_blacklist(discord_id, blacklisted, create, conn)
+    # check if account exists
+    account_data = await __select_account_data(discord_id, conn)
+    if not account_data:
+        # create account with blacklist setting if "create if not exists" is true
+        if create:
+            await create_account(discord_id, blacklisted=blacklisted, conn=conn)
         return
 
-    async with await Database().connect() as conn:
-        await __set_account_blacklist(discord_id, blacklisted, create, conn)
+    # update existing account blacklist value
+    await conn.execute(
+        'UPDATE accounts SET blacklisted = $1 WHERE discord_id = $2',
+        int(blacklisted), discord_id)

@@ -4,6 +4,7 @@
 import os
 import logging
 from asyncio import AbstractEventLoop
+from functools import wraps
 from typing import Any, Coroutine
 
 import asyncpg
@@ -93,3 +94,21 @@ class Database:
         # run custom cleanup if is valid
         if callable(self._cleanup):
             await self._cleanup()
+
+
+def ensure_connection(func):
+    """
+    Decorator that ensures a database connection is resolved.
+    If the `conn` parameter is `None`, a new connection will be acquired,
+    otherwise the passed `conn` parameter connection will be used.
+    """
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        conn = kwargs.get('conn')
+        if conn:  # use provided connection
+            return await func(*args, **kwargs)
+
+        async with await Database().connect() as conn:  # otherwise, acquire new connection
+            kwargs['conn'] = conn
+            return await func(*args, **kwargs)
+    return wrapper
