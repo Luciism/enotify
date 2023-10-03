@@ -6,6 +6,9 @@ from .accounts import create_account, get_account
 from .database import Database
 
 
+db = Database()
+
+
 async def get_permissions(discord_id: int) -> list:
     """
     Returns list of permissions for a discord user
@@ -50,7 +53,10 @@ async def has_permission(
     return False
 
 
-async def set_permissions(discord_id: int, permissions: list | str):
+async def set_permissions(
+    discord_id: int,
+    permissions: list | str
+) -> None:
     """
     Sets a users permissions to the given permissions\n
     Permissions can either be a list of permissions as a list
@@ -62,7 +68,6 @@ async def set_permissions(discord_id: int, permissions: list | str):
     if isinstance(permissions, list):
         permissions = ','.join(permissions)
 
-    db = Database()
     await db.connect()
 
     account_data = await db.conn.execute(
@@ -79,7 +84,10 @@ async def set_permissions(discord_id: int, permissions: list | str):
         await create_account(discord_id, permissions=permissions)
 
 
-async def add_permission(discord_id: int, permission: str):
+async def add_permission(
+    discord_id: int,
+    permission: str
+) -> None:
     """
     Adds a permission to a user if they don't already have it
     :param discord_id: the discord id of the respective user
@@ -93,7 +101,10 @@ async def add_permission(discord_id: int, permission: str):
         await set_permissions(discord_id, permissions)
 
 
-async def remove_permission(discord_id: int, permission: str):
+async def remove_permission(
+    discord_id: int,
+    permission: str
+) -> None:
     """
     Removes a permission for a user if they have it
     :param discord_id: the discord id of the respective user
@@ -110,7 +121,14 @@ async def remove_permission(discord_id: int, permission: str):
 
 
 class PermissionManager:
-    def __init__(self, discord_id: int):
+    def __init__(
+        self,
+        discord_id: int
+    ) -> None:
+        """
+        Main permission manager class
+        :param discord_id: the discord id of the user to manage the permissions of
+        """
         self.discord_id = discord_id
 
 

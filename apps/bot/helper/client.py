@@ -25,7 +25,6 @@ class Client(commands.Bot):
     async def setup_hook(self):
         # setup and connect to database
         self.db = Database()
-        await self.db.connect()
 
         # load cogs
         ...

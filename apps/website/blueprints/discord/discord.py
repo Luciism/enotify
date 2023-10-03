@@ -3,7 +3,12 @@ from urllib.parse import urljoin
 
 from flask import Blueprint, redirect, request, session
 
-from helper import build_discord_auth_url, enchange_discord_grant, fetch_discord_user_dict
+from notilib import Database
+from helper import (
+    build_discord_auth_url,
+    enchange_discord_grant,
+    fetch_discord_user_dict
+)
 
 
 discord_bp = Blueprint(
@@ -67,4 +72,5 @@ async def token():
     access_token = session.get('access_token')
 
     user = await fetch_discord_user_dict(access_token, cache=True)
+    await Database().cleanup()
     return user or 'no data'

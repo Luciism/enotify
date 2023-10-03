@@ -1,11 +1,13 @@
 import os
 import json
 
-from aiogoogle.auth.creds import ClientCreds
+from aiogoogle.auth.creds import ClientCreds, UserCreds
 from cryptography.fernet import Fernet
 
 from ...database import Database
 
+
+db = Database()
 
 client_creds = ClientCreds(
     client_id=os.getenv('gcloud_client_id'),
@@ -47,17 +49,24 @@ async def save_user_credentials(
     email_address: str,
     credentials: dict
 ) -> None:
-    """Save a user's credentials to the database"""
+    """
+    Save a user's credentials to the database
+    :param discord_id: the discord id of the logged in user to associate the\
+        email address and credentials with
+    :param email_address: the email address for the google account that the\
+        credentials are tied to
+    :param credentials: the encrypted google oauth credentials
+    """
     encrypted_credentials = encrypt_credentials(credentials)
 
-    conn = await Database().connect()
+    conn = await db.connect()
 
     current = await conn.fetchrow(
         'SELECT * FROM gmail_credentials WHERE discord_id = $1 AND email_address = $2',
-        discord_id, encrypted_credentials
+        discord_id, email_address
     )
 
-    if current:
+    if not current:
         await conn.execute(
             'INSERT INTO gmail_credentials (discord_id, email_address, '
             'credentials) VALUES ($1, $2, $3)',
@@ -67,5 +76,29 @@ async def save_user_credentials(
         await conn.execute(
             'UPDATE gmail_credentials SET credentials = $1 '
             'WHERE discord_id = $2 AND email_address = $3',
-            credentials, discord_id, email_address
+            encrypted_credentials, discord_id, email_address
         )
+
+
+async def load_user_credentials(
+    discord_id: int,
+    email_address: str
+) -> UserCreds | None:
+    """
+    Loads specified user credentials from the database
+    :param discord_id: the discord id of the account that the credentials\
+        are tied to
+    :param email_address: the email address of the account that the credentials\
+        are tied to
+    """
+    conn = await db.connect()
+
+    credentials = await conn.fetchrow(
+        'SELECT * FROM gmail_credentials WHERE discord_id = $1 AND email_address = $2',
+        discord_id, email_address)
+
+    if not credentials:
+        return None
+
+    decrypted_credentials = decrypt_credentials(credentials[2])
+    return UserCreds(**decrypted_credentials)

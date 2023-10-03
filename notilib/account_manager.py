@@ -19,11 +19,15 @@ class AccountDeleteConfirm:
 
 
     async def confirm(self):
-        await delete_account(self._discord_id, confirm=True)
+        await delete_account(
+            self._discord_id, confirm=True)
 
 
 class Account:
-    def __init__(self, discord_id: int) -> None:
+    def __init__(
+        self,
+        discord_id: int
+    ) -> None:
         """
         Internal account system management class
         :param discord_id: the discord id associated with the account
@@ -106,7 +110,7 @@ class Account:
 
 
     def delete(self) -> AccountDeleteConfirm:
-        """Delete the account MUST CALL `.confirm()`"""
+        """To delete the account YOU MUST CALL `.confirm()`"""
         return AccountDeleteConfirm(self.discord_id)
 
 
@@ -127,7 +131,8 @@ class Account:
             at least one of the given permissions.
         :param allow_star: returns `True` if the user has the `*` permission
         """
-        return await has_permission(self.discord_id, permissions, allow_star)
+        return await has_permission(
+            self.discord_id, permissions, allow_star)
 
 
     @property

@@ -169,6 +169,7 @@ async def fetch_discord_user_dict(
         return None
 
     # create account if it doesn't exist
+    # close conn after since flask uses a different event loop for each request
     await create_account(int(discord_info.get('id')))
     return discord_info
 

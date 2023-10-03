@@ -1,5 +1,7 @@
 from functools import wraps
 
+from asyncpg import Connection
+
 from notilib import Database
 
 
@@ -14,15 +16,15 @@ db.database = 'enotify_test'
 def execute_in_transaction(coro):
     @wraps(coro)
     async def wrapper(*args, **kwargs):
-        await db.connect()
-
         try:
-            async with db.conn.transaction():
-                # execute coroutine in transaction
-                result = await coro(*args, **kwargs)
+            async with await db.connect() as conn:
+                conn: Connection
+                async with conn.transaction():
+                    # execute coroutine in transaction
+                    result = await coro(*args, **kwargs)
 
-                # rollback the transaction by raising an error
-                raise RollbackTransaction
+                    # rollback the transaction by raising an error
+                    raise RollbackTransaction
         except RollbackTransaction:
             return result
 
