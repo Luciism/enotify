@@ -86,3 +86,12 @@ async def callback():
 
     # Should either receive a code or an error
     return "Unable to obtain grant, please try again."
+
+
+@gmail_bp.route('/gmail/creds')
+async def gmail_creds():
+    email_address = request.args.get('email')
+    access_token = session.get('access_token')
+
+    user = await fetch_discord_user(access_token, cache=True)
+    return await gmail.load_user_credentials(user.id, email_address) or "no data"
