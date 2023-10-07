@@ -61,24 +61,26 @@ async def save_user_credentials(
         one will be acquired automatically
     """
     encrypted_credentials = encrypt_credentials(credentials)
+    encrypted_email_addr = fernet.encrypt(email_address.encode())
 
     current = await conn.fetchrow(
         'SELECT * FROM gmail_credentials WHERE discord_id = $1 AND email_address = $2',
-        discord_id, email_address
+        discord_id, encrypted_email_addr
     )
 
     if not current:
         await conn.execute(
             'INSERT INTO gmail_credentials (discord_id, email_address, '
             'credentials) VALUES ($1, $2, $3)',
-            discord_id, email_address, encrypted_credentials
+            discord_id, encrypted_email_addr, encrypted_credentials
         )
     else:
         await conn.execute(
             'UPDATE gmail_credentials SET credentials = $1 '
             'WHERE discord_id = $2 AND email_address = $3',
-            encrypted_credentials, discord_id, email_address
+            encrypted_credentials, discord_id, encrypted_email_addr
         )
+
 
 @ensure_connection
 async def load_user_credentials(
@@ -93,9 +95,11 @@ async def load_user_credentials(
     :param email_address: the email address of the account that the credentials\
         are tied to
     """
+    encrypted_email_addr = fernet.encrypt(email_address.encode())
+
     credentials = await conn.fetchrow(
         'SELECT * FROM gmail_credentials WHERE discord_id = $1 AND email_address = $2',
-        discord_id, email_address)
+        discord_id, encrypted_email_addr)
 
     if not credentials:
         return None
