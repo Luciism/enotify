@@ -11,8 +11,6 @@ logger = logging.getLogger('enotify')
 
 # main bot client
 class Client(commands.Bot):
-    db: Database = None
-
     def __init__(self, *, intents: discord.Intents=None):
         if intents is None:
             intents = discord.Intents.default()
@@ -23,12 +21,7 @@ class Client(commands.Bot):
         )
 
     async def setup_hook(self):
-        # setup and connect to database
-        self.db = Database()
-
-        # load cogs
-        ...
-
+        await self.tree.sync()
 
     async def on_ready(self):
         logger.info(f'Logged in as {self.user} (ID: {self.user.id})\n------')

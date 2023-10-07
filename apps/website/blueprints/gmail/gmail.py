@@ -24,7 +24,10 @@ logger.info('Blueprint registered.')
 jwt_client = jwt.PyJWKClient('https://www.googleapis.com/oauth2/v2/certs')
 oauth2 = Oauth2Manager(client_creds=gmail.client_creds)
 
-jwt_audience = urljoin(os.getenv('base_url'), '/gmail/push')
+jwt_audience = urljoin(
+    os.getenv('base_url'),
+    f'/gmail/push?token={os.getenv("gmail_push_route_token")}'  # route with token
+)
 
 
 gmail_bp = Blueprint(
@@ -103,6 +106,14 @@ async def callback():
 
 @gmail_bp.route('/gmail/push', methods=['POST'])
 async def gmail_push():
+    # for an extra layer of security, check if the token parameter
+    # of the uri matches with the configured environment variable
+    token_arg = request.args.get('token')
+
+    if token_arg != os.getenv('gmail_push_route_token'):
+        logger.info('(`/gmail/push` denied) Invalid URL parameter `token`')
+        return {'success': False, 'reason': 'Invalid URL parameter `token`'}
+
     try:
         # get jwt token from authorization header ("Bearer xxx")
         bearer_token = request.headers.get("Authorization")
@@ -111,7 +122,7 @@ async def gmail_push():
         # get unverified header in order to find the algorithm to use
         unverified_header = jwt.get_unverified_header(token)
     except (AttributeError, IndexError, jwt.DecodeError):
-        logger.info('(`/gmail/push`) Invalid authorization header.')
+        logger.info('(`/gmail/push` denied) Invalid authorization header.')
         return {'success': False, 'reason': 'Invalid authorization header.'}
 
     # obtain signing key from jwt token
@@ -127,10 +138,10 @@ async def gmail_push():
             options={"verify_exp": True, "strict_aud": True},
         )
     except jwt.InvalidSignatureError:
-        logger.info('(`/gmail/push`) Invalid signature for signed JWT header!')
+        logger.info('(`/gmail/push` denied) Invalid signature for signed JWT header!')
         return {'success': False, 'reason': 'Invalid JWT signature.'}
     except jwt.ExpiredSignatureError:
-        logger.info('(`/gmail/push`) Expired signature for signed JWT header!')
+        logger.info('(`/gmail/push` denied) Expired signature for signed JWT header!')
         return {'success': False, 'reason': 'Expired JWT signature.'}
 
     print(await request.get_json())
@@ -145,3 +156,4 @@ async def gmail_creds():
 
     user = await fetch_discord_user(access_token, cache=True)
     return await gmail.load_user_credentials(user.id, email_address) or "no data"
+

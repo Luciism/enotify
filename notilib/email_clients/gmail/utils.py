@@ -1,7 +1,6 @@
 import logging
 
 from aiohttp import ClientSession
-
 from aiogoogle import HTTPError
 from aiogoogle.auth import Oauth2Manager
 from aiogoogle.auth.creds import UserCreds
