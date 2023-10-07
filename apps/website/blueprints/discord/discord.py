@@ -1,3 +1,4 @@
+import logging
 import os
 from urllib.parse import urljoin
 
@@ -11,6 +12,9 @@ from helper import (
 )
 
 
+logger = logging.getLogger(__name__)
+logger.info('Blueprint registered.')
+
 discord_bp = Blueprint(
     name='discord',
     import_name=__name__,
@@ -18,7 +22,6 @@ discord_bp = Blueprint(
     static_folder='static',
     static_url_path='/static/discord/'
 )
-
 
 callback_redirect_uri = urljoin(os.getenv('base_url'), '/discord/callback')
 

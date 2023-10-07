@@ -1,3 +1,8 @@
+import os
+import logging
+from urllib.parse import urljoin
+
+import jwt
 from aiogoogle import HTTPError
 from aiogoogle.auth import UserCreds
 from aiogoogle.auth.managers import Oauth2Manager
@@ -7,9 +12,19 @@ from quart import (
     request,
     session
 )
+
 from notilib import Database
 from notilib.email_clients import gmail
 from helper import fetch_discord_user, decrypt_session_cookie
+
+
+logger = logging.getLogger(__name__)
+logger.info('Blueprint registered.')
+
+jwt_client = jwt.PyJWKClient('https://www.googleapis.com/oauth2/v2/certs')
+oauth2 = Oauth2Manager(client_creds=gmail.client_creds)
+
+jwt_audience = urljoin(os.getenv('base_url'), '/gmail/push')
 
 
 gmail_bp = Blueprint(
@@ -19,8 +34,6 @@ gmail_bp = Blueprint(
     static_folder='static',
     static_url_path='/static/gmail/'
 )
-
-oauth2 = Oauth2Manager(client_creds=gmail.client_creds)
 
 
 @gmail_bp.route('/gmail/authorize')
@@ -86,6 +99,43 @@ async def callback():
 
     # Should either receive a code or an error
     return "Unable to obtain grant, please try again."
+
+
+@gmail_bp.route('/gmail/push', methods=['POST'])
+async def gmail_push():
+    try:
+        # get jwt token from authorization header ("Bearer xxx")
+        bearer_token = request.headers.get("Authorization")
+        token = bearer_token.split(" ")[1]
+
+        # get unverified header in order to find the algorithm to use
+        unverified_header = jwt.get_unverified_header(token)
+    except (AttributeError, IndexError, jwt.DecodeError):
+        logger.info('(`/gmail/push`) Invalid authorization header.')
+        return {'success': False, 'reason': 'Invalid authorization header.'}
+
+    # obtain signing key from jwt token
+    signing_key = jwt_client.get_signing_key_from_jwt(token)
+
+    try:
+        # decode and verify the token
+        jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=[unverified_header['alg']],
+            audience=jwt_audience,
+            options={"verify_exp": True, "strict_aud": True},
+        )
+    except jwt.InvalidSignatureError:
+        logger.info('(`/gmail/push`) Invalid signature for signed JWT header!')
+        return {'success': False, 'reason': 'Invalid JWT signature.'}
+    except jwt.ExpiredSignatureError:
+        logger.info('(`/gmail/push`) Expired signature for signed JWT header!')
+        return {'success': False, 'reason': 'Expired JWT signature.'}
+
+    print(await request.get_json())
+
+    return {'success': True}
 
 
 @gmail_bp.route('/gmail/creds')

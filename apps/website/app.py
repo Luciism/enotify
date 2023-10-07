@@ -4,20 +4,19 @@ import logging
 from quart import Quart
 from dotenv import load_dotenv; load_dotenv()
 
-from notilib import setup_logging, Database
-from helper import QuartClient
+from notilib import Database, setup_logging, PROJECT_PATH
 
 from blueprints.gmail.gmail import gmail_bp
 from blueprints.discord.discord import discord_bp
 
 
 # -------------------------- LOGGING -------------------------- #
-setup_logging()
-logger = logging.getLogger('enotify.apps.website')
+setup_logging(os.path.join(PROJECT_PATH, 'logs/website'))
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------- APP ---------------------------- #
-app = QuartClient(__name__)
+app = Quart(__name__)
 app.config['SECRET_KEY'] = os.getenv('flask_secret_key')
 
 app.register_blueprint(gmail_bp)
@@ -37,11 +36,6 @@ async def close_db_pool():
     db.pool.terminate()
 
 
-# ---------------------------- MISC --------------------------- #
-@app.route('/test-pub-sub', methods=['GET', 'POST'])
-async def test_pub_sub(): return {'success': True}
-
-
 # ---------------------------- RUN ---------------------------- #
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", debug=True, port=8000)
