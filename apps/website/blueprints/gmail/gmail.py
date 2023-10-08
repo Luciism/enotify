@@ -43,7 +43,7 @@ gmail_bp = Blueprint(
 async def authorize():
     uri = oauth2.authorization_url(
         client_creds=gmail.client_creds,
-        state=request.cookies.get('session')
+        # state=request.cookies.get('session')
     )
     return redirect(uri)
 
@@ -51,16 +51,16 @@ async def authorize():
 @gmail_bp.route('/gmail/callback')
 async def callback():
     # session cookie stored in `state` url param
-    state = request.args.get('state')
-    session_cookie = decrypt_session_cookie(state)
+    # state = request.args.get('state')
+    # session_cookie = decrypt_session_cookie(state)
 
-    if not session_cookie:
-        return 'Failed to fetch discord information'
+    # if not session_cookie:
+    #     return 'Failed to fetch discord information'
 
-    # loop through all the decrypted items in session_cookie
-    # and add them back to the session
-    for key, value in session_cookie.items():
-        session[key] = value
+    # # loop through all the decrypted items in session_cookie
+    # # and add them back to the session
+    # for key, value in session_cookie.items():
+    #     session[key] = value
 
     # make sure the user is logged in
     access_token = session.get('access_token')
