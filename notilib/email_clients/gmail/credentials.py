@@ -1,12 +1,16 @@
 import os
 import json
+import logging
 
+from aiogoogle.auth import Oauth2Manager
 from aiogoogle.auth.creds import ClientCreds, UserCreds
 from asyncpg import Connection
 from cryptography.fernet import Fernet
 
 from ...database import ensure_connection
 
+
+logger = logging.getLogger(__name__)
 
 client_creds = ClientCreds(
     client_id=os.getenv('gcloud_client_id'),
@@ -17,6 +21,7 @@ client_creds = ClientCreds(
     ],
     redirect_uri=os.getenv('gcloud_redirect_uri')
 )
+oauth2 = Oauth2Manager(client_creds=client_creds)
 
 fernet = Fernet(os.getenv('credentials_encryption_key'))
 
@@ -77,7 +82,7 @@ async def __find_user_credentials(
 async def save_user_credentials(
     discord_id: int,
     email_address: str,
-    credentials: dict,
+    credentials: UserCreds,
     conn: Connection=None
 ) -> None:
     """
@@ -130,9 +135,20 @@ async def load_user_credentials(
     # obtain raw record for respective discord id and email
     creds = await __find_user_credentials(discord_id, email_address, conn=conn)
 
-    if creds:
-        # decrypt and return UserCreds object for the credentials
-        decrypted_creds = decrypt_credentials(creds['credentials'])
-        return UserCreds(**decrypted_creds)
+    if creds is None:
+        return None
 
-    return None
+    # decrypt and get UserCreds object for the credentials
+    decrypted_creds = decrypt_credentials(creds['credentials'])
+    user_creds = UserCreds(**decrypted_creds)
+
+    # refresh credentials if they are expired
+    did_refresh, user_creds = await oauth2.refresh(user_creds=user_creds)
+
+    if did_refresh:
+        logger.debug('Refreshed Oauth2 user credentials')
+
+        # update the credentials in the database to reflect the refreshed credentials
+        await save_user_credentials(discord_id, email_address, user_creds, conn=conn)
+
+    return user_creds
