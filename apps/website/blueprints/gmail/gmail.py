@@ -15,7 +15,7 @@ from quart import (
 
 from notilib import Database
 from notilib.email_clients import gmail
-from helper import fetch_discord_user, decrypt_session_cookie
+from helper import fetch_discord_user
 
 
 logger = logging.getLogger(__name__)
@@ -43,6 +43,8 @@ gmail_bp = Blueprint(
 async def authorize():
     uri = oauth2.authorization_url(
         client_creds=gmail.client_creds,
+        access_type='offline',
+        prompt='consent'
         # state=request.cookies.get('session')
     )
     return redirect(uri)
