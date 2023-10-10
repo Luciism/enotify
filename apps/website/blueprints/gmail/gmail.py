@@ -1,5 +1,6 @@
 import os
 import logging
+import socket
 from urllib.parse import urljoin
 
 import jwt
@@ -15,7 +16,7 @@ from quart import (
 
 from notilib import Database
 from notilib.email_clients import gmail
-from helper import fetch_discord_user
+from helper import fetch_discord_user, gmail_recieved_notify_user
 
 
 logger = logging.getLogger(__name__)
@@ -133,8 +134,8 @@ async def gmail_push():
     try:
         # decode and verify the token
         jwt.decode(
-            token,
-            signing_key.key,
+            jwt=token,
+            key=signing_key.key,
             algorithms=[unverified_header['alg']],
             audience=jwt_audience,
             options={"verify_exp": True, "strict_aud": True},
@@ -146,7 +147,7 @@ async def gmail_push():
         logger.info('(`/gmail/push` denied) Expired signature for signed JWT header!')
         return {'success': False, 'reason': 'Expired JWT signature.'}
 
-    print(await request.get_json())
+    gmail_recieved_notify_user(await request.get_json())
 
     return {'success': True}
 

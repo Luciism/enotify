@@ -1,0 +1,9 @@
+{
+  "apps": {
+    "bot": {},
+    "website": {}
+  },
+  "global": {
+    "gmail_recieve_socket_port": 15268
+  }
+}

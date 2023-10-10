@@ -1,6 +1,5 @@
 import os
 
-import discord
 from dotenv import load_dotenv
 
 from helper import Client
@@ -13,21 +12,11 @@ setup_logging(
     set_stream_handler=False
 )
 
-
-client = Client()
-
-@client.event
-async def on_gmail_email_recieve(*args):
-    channel = client.get_channel(1158740124708901015)
-
-    await channel.send('email recieved event test')
-    print(args)
-
-
-@client.tree.command(name='test', description='test')
-async def test(interaction: discord.Interaction):
-    await interaction.response.send_message('test motrher cukcer!')
-
+client = Client(
+    cogs=[
+        'cogs.gmail'
+    ]
+)
 
 if __name__ == '__main__':
-    client.run(os.getenv('bot_token'), root_logger=True)
+    client.run(os.getenv('bot_token'), root_logger=True, log_level=10)

@@ -8,20 +8,22 @@ from discord.ext import commands
 from .gmail.listeners import start_gmail_recieved_listener
 
 
-logger = logging.getLogger('enotify')
+logger = logging.getLogger(__name__)
 
 
 # main bot client
 class Client(commands.Bot):
-    def __init__(self, *, intents: discord.Intents=None):
+    def __init__(self, *, intents: discord.Intents=None, cogs: list[str]=None):
         if intents is None:
             intents = discord.Intents.default()
+            intents.members = True
 
         super().__init__(
             intents=intents,
             command_prefix=commands.when_mentioned_or('$')
         )
 
+        self.cog_list = cogs
         self._queue = None
 
     @property
@@ -33,6 +35,15 @@ class Client(commands.Bot):
     async def setup_hook(self):
         # launch gmail email recieved socket listener in different thread
         Thread(target=start_gmail_recieved_listener, args=(self, self.queue)).start()
+
+        # load passed cogs
+        if self.cog_list is not None:
+            for cog in self.cog_list:
+                try:
+                    await self.load_extension(cog)
+                    logger.info(f'Loaded cog: {cog}')
+                except (commands.errors.ExtensionNotFound, commands.errors.ExtensionFailed):
+                    logger.info(f'Failed to load cog: {cog}')
 
         # sync slash command tree
         await self.tree.sync()

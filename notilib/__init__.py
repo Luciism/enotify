@@ -7,14 +7,10 @@ from .loggers.utils import *
 
 from .accounts import *
 from .account_manager import *
+from .common import *
 from .database import *
 from .exceptions import *
 from .functions import *
 from .permissions import *
 
 from .email_clients import *
-
-
-import os
-PROJECT_PATH = os.path.abspath(f'{__file__}/../..')
-del os

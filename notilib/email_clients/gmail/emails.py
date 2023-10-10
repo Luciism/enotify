@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from base64 import b64decode
 
@@ -10,6 +11,9 @@ from .credentials import refresh_user_credentials, client_creds
 from ...database import Database, ensure_connection
 
 
+logger = logging.getLogger(__name__)
+
+
 class EmailPayloadHeader:
     def __init__(self, header_data: dict) -> None:
         self.raw: dict = header_data
@@ -18,7 +22,7 @@ class EmailPayloadHeader:
         self.value: str = header_data.get('value')
 
 
-class EmailPayloadPartBody:
+class EmailPayloadBody:
     def __init__(self, body_data: dict) -> None:
         self.raw: dict = body_data
 
@@ -54,9 +58,9 @@ class EmailPayloadPart:
         return self._headers
 
     @property
-    def body(self) -> EmailPayloadPartBody:
+    def body(self) -> EmailPayloadBody:
         if self._body is None:
-            self._body = EmailPayloadPartBody(self.raw.get('body'))
+            self._body = EmailPayloadBody(self.raw.get('body'))
         return self._body
 
 
@@ -70,6 +74,7 @@ class EmailPayload:
 
         self._headers = None
         self._parts = None
+        self._body = None
 
     @property
     def headers(self) -> list[EmailPayloadHeader]:
@@ -86,6 +91,12 @@ class EmailPayload:
             for header in self.raw.get('parts', []):
                 self._parts.append(EmailPayloadPart(header))
         return self._parts
+
+    @property
+    def body(self) -> EmailPayloadBody:
+        if self._body is None:
+            self._body = EmailPayloadBody(self.raw.get('body'))
+        return self._body
 
 
 class Email:
@@ -148,8 +159,6 @@ async def __retrieve_emails(
     :param email_ids: a custom list of email ids to fetch the emails of
     Note that either `count` or `email_ids` should be passed
     """
-    assert (count, email_ids).count(None) == 1  # only one value is set
-
     gmail = await google.discover("gmail", "v1")  # kms
 
     # fetch x amount of most recent email ids
@@ -177,7 +186,7 @@ async def retrieve_emails(
         user_creds=user_creds,
         client_creds=client_creds
     ) as google:
-        emails = await __retrieve_emails(count, google)
+        emails = await __retrieve_emails(google, count=count)
 
     # return singular email object if there is only one
     if len(emails) == 1:
@@ -274,12 +283,12 @@ async def retrieve_new_email(email_address: str) -> Email | None:
     async with pool.acquire() as conn:
         row = await __credentials_by_email_address(email_address, conn=conn)
         if row is None:
+            logger.debug('No credentials found or specified email address.')
             return None
 
         discord_id = row['discord_id']
 
-        user_creds = UserCreds(**json.loads(row[1]))
-        print(user_creds)
+        user_creds = UserCreds(**json.loads(row[1]))  # decrypted credentials column
         user_creds = await refresh_user_credentials(  # refresh credentials if expired
             discord_id, email_address, user_creds, conn=conn)
 
@@ -291,6 +300,7 @@ async def retrieve_new_email(email_address: str) -> Email | None:
 
             email_id = await __retrieve_email_ids(count=1, google=google, gmail=gmail)
             if not email_id:
+                logger.info('Failed to obtain a valid email id.')
                 return None
 
             email_id = email_id[0]  # `__retrieve_email_ids` returns a list of email ids
@@ -300,6 +310,7 @@ async def retrieve_new_email(email_address: str) -> Email | None:
                 email_address, email_id, conn=conn)
 
             if email_id_matches:  # email has already been retrieved
+                logger.info('Email has already been retrieved.')
                 return None
 
             # fetch actual email

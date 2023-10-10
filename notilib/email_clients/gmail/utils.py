@@ -1,18 +1,20 @@
 import logging
+import warnings
+import os
 
 from aiohttp import ClientSession
-from aiogoogle import HTTPError
-from aiogoogle.auth import Oauth2Manager
+from aiogoogle import Aiogoogle, HTTPError
 from aiogoogle.auth.creds import UserCreds
 from aiogoogle.utils import _dict
+from asyncpg import Connection
 
-from .credentials import client_creds
+from .credentials import client_creds, oauth2
+from ...database import ensure_connection
 from ...exceptions import InvalidResetTokenError
 
 
 logger = logging.getLogger(__name__)
-
-oauth2 = Oauth2Manager(client_creds=client_creds)
+warnings.simplefilter('ignore')
 
 
 class UserInfo(_dict):
@@ -63,3 +65,38 @@ async def get_user_info(user_creds: UserCreds) -> dict | UserInfo:
 
     # return the user info as a custom dict type
     return UserInfo(user_info)
+
+
+@ensure_connection
+async def email_address_to_discord_ids(
+    email_address: str,
+    conn: Connection=None
+) -> list[int]:
+    """
+    Returns a list of discord ids that have a certain email tied to them
+    :param email_address: the email address to find the respective discord ids of
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically
+    """
+    rows = await conn.fetch(
+        'SELECT discord_id FROM gmail_credentials '
+        'WHERE pgp_sym_decrypt(email_address, $2) = $1',
+        email_address, os.getenv('database_encryption_key'))
+
+    return [row['discord_id'] for row in rows]
+
+
+async def watch_user_inbox(user_creds: UserCreds) -> None:
+    async with Aiogoogle(
+        user_creds=user_creds,
+        client_creds=client_creds
+    ) as google:
+        gmail = await google.discover("gmail", "v1")
+
+        response = await google.as_user(
+            gmail.users.watch(
+                userId="me",
+                topicName=os.getenv('gcloud_topic_name')
+            )
+        )
+        print(response)
