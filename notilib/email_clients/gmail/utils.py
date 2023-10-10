@@ -84,19 +84,3 @@ async def email_address_to_discord_ids(
         email_address, os.getenv('database_encryption_key'))
 
     return [row['discord_id'] for row in rows]
-
-
-async def watch_user_inbox(user_creds: UserCreds) -> None:
-    async with Aiogoogle(
-        user_creds=user_creds,
-        client_creds=client_creds
-    ) as google:
-        gmail = await google.discover("gmail", "v1")
-
-        response = await google.as_user(
-            gmail.users.watch(
-                userId="me",
-                topicName=os.getenv('gcloud_topic_name')
-            )
-        )
-        print(response)
