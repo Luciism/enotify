@@ -8,7 +8,7 @@ from aiogoogle.auth import Oauth2Manager
 from aiogoogle.auth.creds import ClientCreds, UserCreds
 from asyncpg import Connection
 
-from ...exceptions import InvalidResetTokenError
+from ...exceptions import InvalidRefreshTokenError
 from ...database import ensure_connection
 
 
@@ -28,23 +28,21 @@ oauth2 = Oauth2Manager(client_creds=client_creds)
 
 @ensure_connection
 async def __find_user_credentials(
-    discord_id: int,
     email_address: str,
     conn: Connection=None
 ) -> dict | None:
     """
-    Returns credentials matching discord id and email address from database
-    :param discord_id: the discord id of the account that the credentials\
-        are tied to
+    Returns credentials corresponding to a specific email address from database
     :param email_address: the email address for the google account that the\
         credentials are tied to
     :param conn: an open database connection to execute on, if left as `None`,\
-        one will be acquired automatically
+        one will be acquired automatically (must be passed as a keyword argument)
     """
     credentials = await conn.fetchval(
-        'SELECT pgp_sym_decrypt(credentials, $3) FROM gmail_credentials '
-        'WHERE discord_id = $1 AND pgp_sym_decrypt(email_address, $3) = $2',
-        discord_id, email_address, os.getenv('database_encryption_key'))
+        'SELECT pgp_sym_decrypt(credentials, $2) FROM gmail_credentials '
+        'WHERE pgp_sym_decrypt(email_address, $2) = $1',
+        email_address, os.getenv('database_encryption_key')
+    )
 
     if credentials:
         return json.loads(credentials)
@@ -53,113 +51,104 @@ async def __find_user_credentials(
 
 @ensure_connection
 async def set_credentials_validity(
-    discord_id: int,
     email_address: str,
     valid: bool=False,
     conn: Connection=None
 ) -> bool:
     """
     Sets `valid` column of stored credentials to `True` or `False`
-    :param discord_id: the discord id of the account that the credentials\
-        are tied to
     :param email_address: the email address for the google account that the\
         credentials are tied to
     :param valid: the value to set the credential validity to (`True`, `False`)
     :param conn: an open database connection to execute on, if left as `None`,\
-        one will be acquired automatically
+        one will be acquired automatically (must be passed as a keyword argument)
+
     :return: whether the credentials existed in the database and were updated
     """
-    current = await __find_user_credentials(discord_id, email_address, conn=conn)
+    current = await __find_user_credentials(email_address, conn=conn)
     if not current:
         return False
 
     await conn.execute(
         'UPDATE gmail_credentials SET valid = $1 '
-        'WHERE discord_id = $2 AND pgp_sym_decrypt(email_address, $4) = $3',
-        valid, discord_id, email_address, os.getenv('database_encryption_key')
+        'WHERE pgp_sym_decrypt(email_address, $3) = $2',
+        valid, email_address, os.getenv('database_encryption_key')
     )
     return True
 
 
 @ensure_connection
 async def refresh_user_credentials(
-    discord_id: int,
     email_address: str,
     user_creds: UserCreds,
     conn: Connection=None
 ) -> UserCreds:
     """
     Refreshes user credentials if they are expired
-    :param discord_id: the discord id of the account that the credentials\
-        are tied to
     :param email_address: the email address for the google account that the\
         credentials are tied to
     :param user_creds: the credentials to refresh if expired
     :param conn: an open database connection to execute on, if left as `None`,\
-        one will be acquired automatically
+        one will be acquired automatically (must be passed as a keyword argument)
     """
     # refresh credentials if they are expired
     try:
         did_refresh, user_creds = await oauth2.refresh(user_creds=user_creds)
     except HTTPError as exc:
-        res: Request = exc.res
-        if res.json['error'] == 'invalid_grant':
-            await set_credentials_validity(
-                discord_id, email_address, valid=False, conn=conn)
-            raise InvalidResetTokenError(
+        # raise invalid refresh error if error http error is due to an invalid grant
+        if exc.res.json['error'] == 'invalid_grant':
+            await set_credentials_validity(email_address, valid=False, conn=conn)
+            raise InvalidRefreshTokenError(
                 'Invalid google account refresh token credential!') from exc
+        # otherwise reraise
         raise
 
     if did_refresh:
         logger.debug('Refreshed Oauth2 user credentials')
 
         # update the credentials in the database to reflect the refreshed credentials
-        await save_user_credentials(discord_id, email_address, user_creds, conn=conn)
+        await save_user_credentials(email_address, user_creds, conn=conn)
 
     return user_creds
 
 
 @ensure_connection
 async def save_user_credentials(
-    discord_id: int,
     email_address: str,
     user_creds: UserCreds,
     conn: Connection=None
 ) -> None:
     """
     Save a user's credentials to the database
-    :param discord_id: the discord id of the logged in user to associate the\
-        email address and credentials with
     :param email_address: the email address for the google account that the\
         credentials are tied to
     :param credentials: the encrypted google oauth credentials
     :param conn: an open database connection to execute on, if left as `None`,\
-        one will be acquired automatically
+        one will be acquired automatically (must be passed as a keyword argument)
     """
     # find any existing record that has the same discord id and email address
     # through interation since the ciphertext is non deterministic
-    existing = await __find_user_credentials(discord_id, email_address, conn=conn)
+    existing = await __find_user_credentials(email_address, conn=conn)
 
     credentials = json.dumps(user_creds)
 
     if existing:
         await conn.execute(
-            'UPDATE gmail_credentials SET credentials = pgp_sym_encrypt($1, $4) '
-            'WHERE discord_id = $2 AND pgp_sym_decrypt(email_address, $4) = $3',
-            credentials, discord_id, email_address, os.getenv('database_encryption_key'),
+            'UPDATE gmail_credentials SET credentials = pgp_sym_encrypt($1, $3) '
+            'WHERE pgp_sym_decrypt(email_address, $3) = $2',
+            credentials, email_address, os.getenv('database_encryption_key'),
         )
         return
 
     await conn.execute(
-        'INSERT INTO gmail_credentials (discord_id, email_address, credentials) '
-        'VALUES ($1, pgp_sym_encrypt($2, $4), pgp_sym_encrypt($3, $4))',
-        discord_id, email_address, credentials, os.getenv('database_encryption_key')
+        'INSERT INTO gmail_credentials (email_address, credentials) '
+        'VALUES (pgp_sym_encrypt($1, $3), pgp_sym_encrypt($2, $3))',
+        email_address, credentials, os.getenv('database_encryption_key')
     )
 
 
 @ensure_connection
 async def load_user_credentials(
-    discord_id: int,
     email_address: str,
     conn: Connection=None
 ) -> UserCreds | None:
@@ -170,15 +159,15 @@ async def load_user_credentials(
     :param email_address: the email address of the account that the credentials\
         are tied to
     :param conn: an open database connection to execute on, if left as `None`,\
-        one will be acquired automatically
+        one will be acquired automatically (must be passed as a keyword argument)
     """
     # obtain raw record for respective discord id and email
-    creds = await __find_user_credentials(discord_id, email_address, conn=conn)
+    creds = await __find_user_credentials(email_address, conn=conn)
     if creds is None:
         return None
 
     user_creds = UserCreds(**creds)
     user_creds = await refresh_user_credentials(
-        discord_id, email_address, user_creds, conn=conn)
+        email_address, user_creds, conn=conn)
 
     return user_creds

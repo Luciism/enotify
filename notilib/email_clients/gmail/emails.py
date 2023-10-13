@@ -7,7 +7,11 @@ from aiogoogle import Aiogoogle, GoogleAPI
 from aiogoogle.auth import UserCreds
 from asyncpg import Connection, Record
 
-from .credentials import refresh_user_credentials, client_creds
+from .credentials import (
+    refresh_user_credentials,
+    load_user_credentials,
+    client_creds
+)
 from ...database import Database, ensure_connection
 
 
@@ -204,57 +208,71 @@ async def get_latest_email_id(
     Gets the id of the latest email fetched for the specified email address.
     :param email_address: the email address to get the latest email id of
     :param conn: an open database connection to execute on, if left as `None`,\
-        one will be acquired automatically
+        one will be acquired automatically (must be passed as a keyword argument)
     """
     latest_email_id = await conn.fetchval(
-        'SELECT latest_email_id FROM gmail_latest_email_ids '
-        'WHERE pgp_sym_decrypt(email_address, $1) = $2',
-        os.getenv('database_encryption_key'), email_address
+        'SELECT latest_email_id FROM gmail_credentials '
+        'WHERE pgp_sym_decrypt(email_address, $2) = $1',
+        email_address, os.getenv('database_encryption_key')
     )
-    return latest_email_id or None
+    return latest_email_id
 
 
 @ensure_connection
 async def set_latest_email_id(
     email_address: str,
-    latest_email_id: str,
+    latest_email_id: str=None,
     conn: Connection=None
 ) -> None:
     """
-    Sets the `latest_email_id` value for a email address
+    Sets the `latest_email_id` value for an email address, if `latest_email_id`
+    is left as `None`, the most id of the most recent email in the user's inbox
+    inbox will be used. (Provided that the user has valid credentials).
     :param email_address: the email address to set the latest email id for
     :param latest_email_id: the actual latest email id value to set
     :param conn: an open database connection to execute on, if left as `None`,\
-        one will be acquired automatically
+        one will be acquired automatically (must be passed as a keyword argument)
     """
-    existing = await get_latest_email_id(email_address, conn=conn)
+    # obtain latest email id from users inbox if it is None
+    if latest_email_id is None:
+        user_creds = await load_user_credentials(email_address, conn=conn)
+        if user_creds is None:
+            raise NotImplementedError(
+                'Invalid user credentials, either pass `latest_email_id` '
+                'or ensure that there are valid user creds bound to that email address!')
 
+        async with Aiogoogle(
+            user_creds=user_creds,
+            client_creds=client_creds
+        ) as google:
+            latest_email_ids = await __retrieve_email_ids(count=1, google=google)
+
+            if not latest_email_ids:
+                raise NotImplementedError(
+                    'Failed to fetch the latest email id from the users inbox!')
+            latest_email_id = latest_email_ids[0]
+
+    # check if row exists in database
+    existing = await conn.fetchval(
+        'SELECT email_address FROM gmail_credentials '
+        'WHERE pgp_sym_decrypt(email_address, $2) = $1',
+        email_address, os.getenv('database_encryption_key')
+    )
+
+    # should typically always exist if this function is called, but shit happens
     if existing is None:
         await conn.execute(
-            'INSERT INTO gmail_latest_email_ids (email_address, latest_email_id) '
-            'VALUES (pgp_sym_encrypt($1, $2), $3)',
-            email_address, os.getenv('database_encryption_key'), latest_email_id
-        )
+            'INSERT INTO gmail_credentials (email_address, latest_email_id, valid) '
+            'VALUES (pgp_sym_encrypt($1, $3), $2, false)',
+            email_address, latest_email_id, os.getenv('database_encryption_key')
+        )  # insert new row and set `valid` to false because there are no credentials
         return
 
     await conn.execute(
-        'UPDATE gmail_latest_email_ids SET latest_email_id = $1 '
+        'UPDATE gmail_credentials SET latest_email_id = $1 '
         'WHERE pgp_sym_decrypt(email_address, $2) = $3',
         latest_email_id, os.getenv('database_encryption_key'), email_address
     )
-
-
-@ensure_connection
-async def __credentials_by_email_address(
-    email_address: str,
-    conn: Connection=None
-) -> Record | None:
-    row = await conn.fetchrow(
-        'SELECT discord_id, pgp_sym_decrypt(credentials, $2) FROM gmail_credentials '
-        'WHERE pgp_sym_decrypt(email_address, $2) = $1 AND valid = TRUE',
-        email_address, os.getenv('database_encryption_key')
-    )
-    return row or None
 
 
 @ensure_connection
@@ -281,16 +299,11 @@ async def retrieve_new_email(email_address: str) -> Email | None:
     pool = await Database().connect()
 
     async with pool.acquire() as conn:
-        row = await __credentials_by_email_address(email_address, conn=conn)
-        if row is None:
+        user_creds = await load_user_credentials(email_address, conn=conn)
+
+        if user_creds is None:
             logger.debug('No credentials found or specified email address.')
             return None
-
-        discord_id = row['discord_id']
-
-        user_creds = UserCreds(**json.loads(row[1]))  # decrypted credentials column
-        user_creds = await refresh_user_credentials(  # refresh credentials if expired
-            discord_id, email_address, user_creds, conn=conn)
 
         async with Aiogoogle(
             user_creds=user_creds,
@@ -300,7 +313,7 @@ async def retrieve_new_email(email_address: str) -> Email | None:
 
             email_id = await __retrieve_email_ids(count=1, google=google, gmail=gmail)
             if not email_id:
-                logger.info('Failed to obtain a valid email id.')
+                logger.debug('Failed to obtain a valid email id.')
                 return None
 
             email_id = email_id[0]  # `__retrieve_email_ids` returns a list of email ids
@@ -310,7 +323,7 @@ async def retrieve_new_email(email_address: str) -> Email | None:
                 email_address, email_id, conn=conn)
 
             if email_id_matches:  # email has already been retrieved
-                logger.info('Email has already been retrieved.')
+                logger.debug('Email has already been retrieved.')
                 return None
 
             # fetch actual email

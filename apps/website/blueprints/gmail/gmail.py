@@ -98,7 +98,12 @@ async def callback():
             # handle error
             return user_info.error
 
-        await gmail.save_user_credentials(user.id, user_info.email, user_creds)
+        pool = await Database().connect()
+
+        async with pool.acquire() as conn:
+            await gmail.add_email_address(user.id, user_info.email, conn=conn)
+            await gmail.save_user_credentials(user_info.email, user_creds, conn=conn)
+            await gmail.set_latest_email_id(user_info.email, conn=conn)
 
         await Database().cleanup()
         return user_creds
@@ -155,8 +160,5 @@ async def gmail_push():
 @gmail_bp.route('/gmail/creds')
 async def gmail_creds():
     email_address = request.args.get('email')
-    access_token = session.get('access_token')
 
-    user = await fetch_discord_user(access_token, cache=True)
-    return await gmail.load_user_credentials(user.id, email_address) or "no data"
-
+    return await gmail.load_user_credentials(email_address) or "no data"

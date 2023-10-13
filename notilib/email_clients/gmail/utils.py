@@ -1,16 +1,13 @@
 import logging
 import warnings
-import os
 
 from aiohttp import ClientSession
-from aiogoogle import Aiogoogle, HTTPError
+from aiogoogle import HTTPError
 from aiogoogle.auth.creds import UserCreds
 from aiogoogle.utils import _dict
-from asyncpg import Connection
 
-from .credentials import client_creds, oauth2
-from ...database import ensure_connection
-from ...exceptions import InvalidResetTokenError
+from .credentials import oauth2
+from ...exceptions import InvalidRefreshTokenError
 
 
 logger = logging.getLogger(__name__)
@@ -47,7 +44,7 @@ async def get_user_info(user_creds: UserCreds) -> dict | UserInfo:
     try:
         refreshed, user_creds = await oauth2.refresh(user_creds=user_creds)
     except HTTPError as exc:
-        raise InvalidResetTokenError(
+        raise InvalidRefreshTokenError(
             'Invalid google account refresh token credential!') from exc
 
     if refreshed:
@@ -65,22 +62,3 @@ async def get_user_info(user_creds: UserCreds) -> dict | UserInfo:
 
     # return the user info as a custom dict type
     return UserInfo(user_info)
-
-
-@ensure_connection
-async def email_address_to_discord_ids(
-    email_address: str,
-    conn: Connection=None
-) -> list[int]:
-    """
-    Returns a list of discord ids that have a certain email tied to them
-    :param email_address: the email address to find the respective discord ids of
-    :param conn: an open database connection to execute on, if left as `None`,\
-        one will be acquired automatically
-    """
-    rows = await conn.fetch(
-        'SELECT discord_id FROM gmail_credentials '
-        'WHERE pgp_sym_decrypt(email_address, $2) = $1',
-        email_address, os.getenv('database_encryption_key'))
-
-    return [row['discord_id'] for row in rows]

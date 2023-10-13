@@ -33,7 +33,7 @@ class TestAccountCreation:
     @pytest.mark.asyncio
     async def test_create_account_permissions(self):
         account = await self._create_account(permissions=['foo', 'bar'])
-        assert account.permissions == 'foo,bar'
+        assert account.permissions == ['foo', 'bar']
 
     @pytest.mark.asyncio
     async def test_create_account_blacklisted(self):

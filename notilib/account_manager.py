@@ -3,6 +3,8 @@
 
 from datetime import datetime
 
+from asyncpg import Connection
+
 from .accounts import (
     get_account,
     set_account_blacklist,
@@ -10,7 +12,6 @@ from .accounts import (
     delete_account
 )
 from .permissions import PermissionManager, has_permission
-from .functions import comma_separated_to_list
 
 
 class AccountDeleteConfirm:
@@ -60,6 +61,7 @@ class Account:
         self._permissions = self.__default
         self._blacklisted = self.__default
         self._exists = self.__default
+        self._gmail_email_addresses = self.__default
 
 
     async def _load_account_table(self):
@@ -73,8 +75,9 @@ class Account:
 
             self._account_id = account.account_id
             self._creation_timestamp = account.creation_timestamp
-            self._permissions = comma_separated_to_list(account.permissions)
-            self._blacklisted = bool(account.blacklisted)
+            self._permissions = account.permissions or []
+            self._blacklisted = account.blacklisted
+            self._gmail_email_addresses = account.gmail_email_addresses or []
 
             return
 
@@ -91,21 +94,31 @@ class Account:
         account_id: int=None,
         creation_timestamp: float=None,
         permissions: list | str=None,
-        blacklisted: bool=False
-    ) -> None:
+        blacklisted: bool=False,
+        gmail_email_addresses: list[str]=None,
+        conn: Connection=None
+    ) -> bool:
         """
         Creates a new account for a user if ones doesn't already exist
         :param account_id: override the autoincrement account id
         :param creation_timestamp: override the creation timestamp of the account
         :param permissions: set the permissions for the user
         :param blacklisted: set whether the accounts is blacklisted
+        :param gmail_email_addresses: a list of gmail email addresses to\
+            add to the account
+        :param conn: an open database connection to execute on, if left as None,\
+            one will be acquired automatically (must be passed as a keyword argument)
+
+        :return: bool of whether or not the account was created
         """
-        await create_account(
+        return await create_account(
             discord_id=self.discord_id,
             account_id=account_id,
             creation_timestamp=creation_timestamp,
             permissions=permissions,
-            blacklisted=blacklisted
+            blacklisted=blacklisted,
+            gmail_email_addresses=gmail_email_addresses,
+            conn=conn
         )
 
 
@@ -114,15 +127,28 @@ class Account:
         return AccountDeleteConfirm(self.discord_id)
 
 
-    async def set_blacklisted(self, blacklisted: bool=True):
-        """Blacklists or unblacklists the account"""
-        await set_account_blacklist(self.discord_id, blacklisted)
+    async def set_blacklisted(
+        self,
+        blacklisted: bool=True,
+        create: bool=True,
+        conn: Connection=None
+    ):
+        """
+        Set the blacklist property of an account
+        :param blacklisted: whether to blacklist or unblacklist the user
+        :param create: whether or not to create the account if it doesn't exist
+        :param conn: an open database connection to execute on, if left as None,\
+            one will be acquired automatically (must be passed as a keyword argument)
+        """
+        await set_account_blacklist(
+            self.discord_id, blacklisted, create, conn=conn)
 
 
     async def has_permission(
         self,
         permissions: str | list,
-        allow_star: bool=True
+        allow_star: bool=True,
+        conn: Connection=None
     ) -> bool:
         """
         Returns bool `True` or `False` if a user has a permission
@@ -130,9 +156,11 @@ class Account:
             are provided, `True` will be returned if the user has
             at least one of the given permissions.
         :param allow_star: returns `True` if the user has the `*` permission
+        :param conn: an open database connection to execute on, if left as None,\
+            one will be acquired automatically (must be passed as a keyword argument)
         """
         return await has_permission(
-            self.discord_id, permissions, allow_star)
+            self.discord_id, permissions, allow_star, conn=conn)
 
 
     @property
@@ -182,6 +210,13 @@ class Account:
         if self._exists is self.__default:
             await self._load_account_table()
         return self._exists
+
+    @property
+    async def gmail_email_addresses(self) -> list[str]:
+        """A list of gmail email addresses associated with the account"""
+        if self._gmail_email_addresses is self.__default:
+            await self._load_account_table()
+        return self._gmail_email_addresses
 
     @property
     def permission_manager(self) -> PermissionManager:

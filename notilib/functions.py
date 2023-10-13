@@ -58,15 +58,19 @@ def comma_separated_to_list(comma_seperated_list: str) -> list:
     return []
 
 
-def create_query_placeholders(count: int) -> str:
+def create_query_placeholders(count: int, start: int=1) -> str:
     """
     Returns a placeholder string for the amount of placeholders
     :param count: the total amount of placeholder values to generate
+    :param start: the number to start generating the placeholders at
     Example usage:
     ```
     >>> create_query_placeholders(3)
     '$1, $2, $3'
+
+    >>> create_query_placeholders(3, start=3)
+    '$3, $4, $5'
     ```
     """
-    placeholders_list = [f'${i+1}' for i in range(count)]
+    placeholders_list = [f'${i+start}' for i in range(count)]
     return ', '.join(placeholders_list)
