@@ -7,13 +7,15 @@ from aiogoogle import Aiogoogle
 from aiogoogle.auth import UserCreds
 from aiohttp import ClientSession
 
-from .credentials import client_creds
+from .credentials import (
+    client_creds
+)
 
 
 async def watch_user_inbox(user_creds: UserCreds) -> None:
     """
     Watches a user's inbox, so that the topic is notified whenever
-    a new email is recieved.
+    a new email is received.
     :param user_creds: the user's google oauth2 credentials
     """
     async with Aiogoogle(

@@ -27,7 +27,7 @@ def decrypt_session_cookie(session_cookie: str=None) -> dict | Any:
 
 
 # i couldn't figure out what the fuck to name this function
-def gmail_recieved_notify_user(res_data: dict) -> None:
+def gmail_received_notify_user(res_data: dict) -> None:
     data = res_data.get('message', {}).get('data')
     if not data:
         return
@@ -37,5 +37,5 @@ def gmail_recieved_notify_user(res_data: dict) -> None:
 
     if email_address is not None:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-            client.connect(('127.0.0.1', config('global.gmail_recieve_socket_port')))
+            client.connect(('127.0.0.1', config('global.gmail_receive_socket_port')))
             client.send(email_address.encode())

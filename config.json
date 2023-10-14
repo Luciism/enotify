@@ -4,6 +4,6 @@
     "website": {}
   },
   "global": {
-    "gmail_recieve_socket_port": 15268
+    "gmail_receive_socket_port": 15268
   }
 }

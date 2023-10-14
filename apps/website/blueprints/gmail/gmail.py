@@ -16,7 +16,7 @@ from quart import (
 
 from notilib import Database
 from notilib.email_clients import gmail
-from helper import fetch_discord_user, gmail_recieved_notify_user
+from helper import fetch_discord_user, gmail_received_notify_user
 
 
 logger = logging.getLogger(__name__)
@@ -105,6 +105,9 @@ async def callback():
             await gmail.save_user_credentials(user_info.email, user_creds, conn=conn)
             await gmail.set_latest_email_id(user_info.email, conn=conn)
 
+        # watch inbox for new emails
+        await gmail.watch_user_inbox(user_creds=user_creds)
+
         await Database().cleanup()
         return user_creds
 
@@ -152,7 +155,7 @@ async def gmail_push():
         logger.info('(`/gmail/push` denied) Expired signature for signed JWT header!')
         return {'success': False, 'reason': 'Expired JWT signature.'}
 
-    gmail_recieved_notify_user(await request.get_json())
+    gmail_received_notify_user(await request.get_json())
 
     return {'success': True}
 

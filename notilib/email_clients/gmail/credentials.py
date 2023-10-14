@@ -171,3 +171,49 @@ async def load_user_credentials(
         email_address, user_creds, conn=conn)
 
     return user_creds
+
+
+@ensure_connection
+async def load_all_user_credentials(
+    conn: Connection=None
+) -> list[UserCreds]:
+    """
+    Returns list of all valid user credentials in the database
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically (must be passed as a keyword argument)
+    """
+    all_creds: list[UserCreds] = []
+
+    # select all valid user credentials
+    rows = await conn.fetch(
+        'SELECT pgp_sym_decrypt(email_address, $1) AS email_address, '
+        'pgp_sym_decrypt(credentials, $1) AS credentials '
+        'FROM gmail_credentials WHERE valid = true',
+        os.getenv('database_encryption_key')
+    )
+
+    # iterate over all credentials and validate them
+    for row in rows:
+        credentials: str = row['credentials']
+        email_address: str = row['email_address']
+
+        if credentials is None:
+            continue
+
+        # load credentials
+        user_creds = UserCreds(**json.loads(credentials))
+
+        # attempt to refresh the credentials, but if they are invalid, set the
+        # credentials validity to false in the database and continue.
+        try:
+            user_creds = await refresh_user_credentials(
+                email_address=email_address, user_creds=user_creds, conn=conn)
+        except InvalidRefreshTokenError:
+            await set_credentials_validity(
+                email_address=email_address, valid=False, conn=conn)
+            continue
+
+        # add valid credentials to current batch
+        all_creds.append(user_creds)
+
+    return all_creds

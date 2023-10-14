@@ -1,11 +1,9 @@
 import logging
-import urllib.parse
 
-from discord import Embed
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from notilib.email_clients import gmail
-from helper import Client
+from helper import Client, build_gmail_received_embed
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +15,7 @@ class Gmail(commands.Cog):
 
 
     @commands.Cog.listener()
-    async def on_gmail_email_recieve(self, email_address: str) -> None:
+    async def on_gmail_email_receive(self, email_address: str) -> None:
         email = await gmail.retrieve_new_email(email_address)
 
         # false alarm (latest email has already been notified)
@@ -25,24 +23,11 @@ class Gmail(commands.Cog):
             logger.debug('No new email to send!')
             return
 
-        # obtain email information from email payload headers
-        for header in email.payload.headers:
-            if header.name.lower() == 'to':
-                recipient = header.value
-            if header.name.lower() == 'from':
-                sender = header.value
-            if header.name.lower() == 'subject':
-                subject = header.value
-
-        # build embed
-        url = f'https://mail.google.com/mail/u/{email_address}/#inbox/{email.id}'
-
-        embed = Embed(title=f'From ({sender})', url=url)
-        embed.add_field(name='Recipient', value=f'||{recipient}||')  # spoiler
-        embed.add_field(name='Subject', value=subject, inline=False)
+        embed = build_gmail_received_embed(email_address, email)
 
         # send notification to all users that have the email address connected
         user_ids = await gmail.email_address_to_discord_ids(email_address)
+
         for user_id in user_ids:
             user = self.client.get_user(user_id)
 
@@ -52,6 +37,16 @@ class Gmail(commands.Cog):
 
             logger.info(f'Sending email notification to user with ID: {user_id}')
             await user.send(embed=embed)
+
+
+    @tasks.loop(hours=24)
+    async def rewatch_inboxes(self) -> None:
+        user_creds_list = await gmail.load_all_user_credentials()
+        await gmail.batch_watch_requests(user_creds_list)
+
+
+    async def cog_load(self):
+        self.rewatch_inboxes.start()
 
 
 async def setup(client: commands.Bot) -> None:
