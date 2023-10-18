@@ -20,7 +20,7 @@ discord_bp = Blueprint(
     import_name=__name__,
     template_folder='templates',
     static_folder='static',
-    static_url_path='/static/discord/'
+    static_url_path='/static/'
 )
 
 callback_redirect_uri = urljoin(os.getenv('base_url'), '/discord/callback')
