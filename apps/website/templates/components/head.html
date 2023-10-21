@@ -1,0 +1,7 @@
+<script>
+try {
+  var contextData = JSON.parse('{{ data | tojson }}');
+} catch (SyntaxError) {
+  var contextData = {}
+}
+</script>

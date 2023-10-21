@@ -8,6 +8,7 @@ from notilib import Database, setup_logging, PROJECT_PATH
 
 from blueprints.gmail.gmail import gmail_bp
 from blueprints.discord.discord import discord_bp
+from blueprints.dashboard.dashboard import dashboard_bp
 
 
 # -------------------------- LOGGING -------------------------- #
@@ -18,9 +19,11 @@ logger = logging.getLogger(__name__)
 # ---------------------------- APP ---------------------------- #
 app = Quart(__name__)
 app.config['SECRET_KEY'] = os.getenv('flask_secret_key')
+app.config['EXPLAIN_TEMPLATE_LOADING'] = None
 
 app.register_blueprint(gmail_bp)
 app.register_blueprint(discord_bp)
+app.register_blueprint(dashboard_bp)
 
 # -------------------------- DATABASE -------------------------- #
 db = Database()

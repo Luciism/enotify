@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    {% include 'components/head.html' %}
+
+    <meta charset="utf-8">
+
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Dashboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ url_for('static', filename='assets/branding/logo.svg') }}"
+    />
+  </head>
+  <body>
+    {% include 'components/header.html' %}
+  </body>
+</html>

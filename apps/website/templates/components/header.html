@@ -1,0 +1,74 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/header.css') }}">
+
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<script src="{{ url_for('static', filename='js/components/header.js') }}" defer></script>
+
+<header class="header">
+  <div class="header-branding">
+    <img
+      src="{{ url_for('static', filename='assets/branding/logo.svg') }}"
+      alt="logo.svg"
+      draggable="false"
+    />
+    <a href="/">Enotify</a>
+  </div>
+  <nav class="navbar">
+    <div class="navlinks" id="navbar-navlinks">
+
+      <a class="navlink" href="/dashboard">
+        <iconify-icon icon="mdi:cog"></iconify-icon>
+        <span>Dashboard</span>
+      </a>
+      <a class="navlink" href="/invite">
+        <iconify-icon icon="mdi:link-variant-remove"></iconify-icon>
+        <span>Invite</span>
+      </a>
+      <a class="navlink" href="/discord">
+        <iconify-icon icon="bx:support"></iconify-icon>
+        <span>Support</span>
+      </a>
+
+    </div>
+    <!-- login button -->
+    <a
+      class="navlinks login-button"
+      id="navbar-login-button"
+      style="display: none;"
+      href="/login"
+    >Login</a>
+
+    <!-- user menu content -->
+    <div class="user-menu-wrapper">
+      <!-- user menu button (profile picture) -->
+      <img
+        style="display: none;"
+        class="navbar-user-menu-button"
+        id="navbar-user-menu-button"
+        src=""
+        alt="avatar.png"
+      />
+
+      <div class="user-menu" id="navbar-user-menu">
+        <div class="user-menu-section">
+          <a class="user-menu-option light-hover-overlay" href="/dashboard">
+            <iconify-icon icon="mdi:cog"></iconify-icon>
+            <span>Settings</span>
+          </a>
+        </div>
+
+        <hr class="user-menu-section-divider">
+
+        <div class="user-menu-section">
+          <a class="user-menu-option light-hover-overlay" href="/dashboard/logout">
+            <iconify-icon icon="material-symbols:logout"></iconify-icon>
+            <span>Logout</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div id="navbar-hamburger-icon">
+      <span></span><span></span><span></span><span></span>
+    </div>
+  </nav>
+</header>
