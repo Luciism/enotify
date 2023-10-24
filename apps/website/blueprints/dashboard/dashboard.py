@@ -15,7 +15,7 @@ dashboard_bp = Blueprint(
     import_name=__name__,
     template_folder='templates',
     static_folder='static',
-    static_url_path='/static/'
+    static_url_path='/static/dashboard/'
 )
 
 

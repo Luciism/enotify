@@ -7,23 +7,37 @@
 :root {
   --text: #fffafa;
   --background: #1a1919;
-  --background-secondary: #222121;
+  --background-secondary: #212020;
   --primary: #f95656;
   --secondary: #750000;
   --accent: #e01f1f;
 
-  --divider-color: #ffffff1a;
+  --border-color: #ffffff1a;
 }
 
-html {
-  padding: 0;
-}
 
 body {
   background-color: var(--background);
+}
 
+html, body {
+  height: 100%;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+*::-webkit-scrollbar {
+  width: 0.3em;
+  background-color: #0d0d0d;
+  position: fixed;
+  right: 0;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #2c2b2b;
+  border-radius: 5px;
 }
 
 .light-hover-overlay {
@@ -43,4 +57,12 @@ body {
 
 .light-hover-overlay:hover:before {
   background: rgba(255, 255, 255, 0.05);
+}
+
+
+.elevated-container {
+  border-radius: 5px;
+
+  background-color: var(--background-secondary);
+  box-shadow: 0px 1.6px 3.6px rgba(0,0,0,0.25), 0px 0px 2.9px rgba(0,0,0,0.22)
 }

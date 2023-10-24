@@ -38,7 +38,6 @@ if (userData != null && userData != undefined) {
 
 // hamburger menu
 const navlinksElement = document.getElementById('navbar-navlinks');
-console.log(navlinksElement);
 
 const navbarHamburgerIcon = document.getElementById('navbar-hamburger-icon');
 navbarHamburgerIcon.addEventListener('click', () => {

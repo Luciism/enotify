@@ -12,6 +12,10 @@
     <title>Dashboard</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/sidebar.css') }}">
+
+    <script src="{{ url_for('.static', filename='js/sidebar.js') }}" defer></script>
 
     <link
       rel="icon"
@@ -21,5 +25,31 @@
   </head>
   <body>
     {% include 'components/header.html' %}
+    <div class="content-wrapper">
+      <div class="sidebar-spacing"></div>
+      <div class="sidebar">
+        <h1 class="sidebar-heading">Dashboard</h1>
+
+        <div class="sidebar-buttons">
+
+          <a class="sidebar-button light-hover-overlay" view-btn="email_accounts">
+            <div class="sidebar-button-selection-indicator"></div>
+            <iconify-icon icon="clarity:email-solid"></iconify-icon>
+            <span>Email Accounts</span>
+          </a>
+
+          <a class="sidebar-button light-hover-overlay" onclick="window.location.assign('/dashboard/logout')">
+            <div class="sidebar-button-selection-indicator"></div>
+            <iconify-icon icon="material-symbols:logout"></iconify-icon>
+            <span>Logout</span>
+          </a>
+
+        </div>
+
+      </div>
+      <div class="content">
+        {% include 'views/email_accounts.html' %}
+      </div>
+    </div>
   </body>
 </html>

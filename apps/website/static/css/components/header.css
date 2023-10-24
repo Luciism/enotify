@@ -1,16 +1,21 @@
+/* adds vertical space where the header is because the header is fixed */
+.header-spacing {
+  height: 55px;
+}
+
 .header {
   position: fixed;
   width: 100vw;
-
+  height: 55px;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   padding: 0 45px;
-  height: 54px;
-
   box-sizing: border-box;
-  border-bottom: 1px solid var(--divider-color);
+  border-bottom: 1px solid var(--border-color);
+  -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: blur(40px);
 }
 
 .header-branding {
@@ -130,7 +135,7 @@
 }
 
 .user-menu-section-divider {
-  border-top: 1px solid var(--divider-color);
+  border-top: 1px solid var(--border-color);
   border-bottom: none;
   border-left: none;
   border-right: none;
@@ -147,7 +152,7 @@
   margin: 0;
   display: flex;
   align-items: center;
-  color: white;
+  color: var(--text);
   font-size: 10px;
   border-radius: 3px;
   text-decoration: none;
