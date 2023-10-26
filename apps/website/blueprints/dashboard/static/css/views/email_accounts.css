@@ -1,0 +1,104 @@
+.email-account-container {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 5px;
+  padding: 8px 25px;
+}
+
+.email-account-container .email-account-info {
+  border-bottom: 1px solid var(--border-color);
+  padding: 2px 5px;
+}
+
+.email-account-container .email-account-info .email-account-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.email-account-container .email-account-info .email-account-buttons p {
+  padding: 0;
+  margin: 0;
+
+  /* vertically center */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.email-account-container
+  .email-account-info
+  .email-account-buttons
+  .email-account-edit-btn {
+  color: var(--text);
+  margin-right: 3px;
+}
+
+.email-account-container
+  .email-account-info
+  .email-account-buttons
+  .email-account-delete-btn {
+  color: var(--primary);
+}
+
+.email-account-container .email-account-info p {
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+}
+
+.email-account-container .email-account-info p,
+.email-account-container .email-account-info .email-account-buttons p {
+  font-size: 16px;
+}
+
+.email-account-container .email-account-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.email-account-container .email-account-settings {
+  padding: 2px 5px;
+}
+
+.email-account-container
+  .email-account-settings
+  .email-account-settings-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 3px;
+  padding: 3px 12px;
+}
+
+.email-account-container
+  .email-account-settings
+  .email-account-settings-option
+  p {
+  font-size: 12px;
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+}
+
+.email-account-container
+  .email-account-settings
+  .email-account-settings-option
+  .settings-option-title {
+  font-size: 12px;
+}
+
+.email-account-container
+  .email-account-settings
+  .email-account-settings-option
+  .settings-option-description {
+  font-size: 9px;
+}
+
+
+.email-account-container
+  .email-account-settings
+  .email-account-settings-option
+  iconify-icon {
+  color: white;
+  font-size: 22px;
+}

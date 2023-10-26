@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{{ url_for('.static', filename='css/sidebar.css') }}">
 
     <script src="{{ url_for('.static', filename='js/sidebar.js') }}" defer></script>
+    <script src="{{ url_for('.static', filename='js/views/email_accounts.js') }}" defer></script>
 
     <link
       rel="icon"
@@ -32,6 +33,12 @@
 
         <div class="sidebar-buttons">
 
+          <a class="sidebar-button light-hover-overlay" view-btn="example">
+            <div class="sidebar-button-selection-indicator"></div>
+            <iconify-icon icon="clarity:email-solid"></iconify-icon>
+            <span>Example</span>
+          </a>
+
           <a class="sidebar-button light-hover-overlay" view-btn="email_accounts">
             <div class="sidebar-button-selection-indicator"></div>
             <iconify-icon icon="clarity:email-solid"></iconify-icon>
@@ -47,8 +54,10 @@
         </div>
 
       </div>
+
       <div class="content">
         {% include 'views/email_accounts.html' %}
+        {% include 'views/example.html' %}
       </div>
     </div>
   </body>

@@ -5,12 +5,16 @@
 }
 
 .sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+
   box-sizing: border-box;
-  position: fixed;
   padding: 10px 25px;
   width: 230px;
   height: 100%;
   border-right: 1px solid var(--border-color);
+  background-color: var(--background);
 }
 
 .sidebar-heading {
@@ -39,6 +43,13 @@
 .sidebar-buttons .sidebar-button iconify-icon {
   margin-left: 1.2em;
   margin-right: 5px;
+}
+
+/* outline */
+.sidebar-buttons .sidebar-button:hover {
+  -webkit-box-shadow: inset 0px 0px 0px 1px var(--border-color);
+  -moz-box-shadow: inset 0px 0px 0px 1px var(--border-color);
+  box-shadow: inset 0px 0px 0px 1px var(--border-color);
 }
 
 .sidebar-button-selection-indicator {

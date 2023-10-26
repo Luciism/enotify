@@ -1,0 +1,73 @@
+{% macro toggle_switch(id=None) %}
+{% if not id %}
+{% set id = 'toggle-switch-' + (range(1, 1000000000)|random|string) %}
+{% endif %}
+<div
+  toggle-switch-component
+  class="toggle-switch-component"
+  id="{{ id }}"
+>
+  <div class="toggle-switch-knob"></div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const switchEl = document.getElementById("{{ id }}");
+
+    switchEl.toggleSwitch = () => {
+      switchEl.classList.toggle("active");
+
+      const event = new CustomEvent("switchToggle", {
+        detail: {
+          active: switchEl.classList.contains("active"),
+        },
+      });
+
+      switchEl.dispatchEvent(event);
+    };
+
+    switchEl.addEventListener("click", (event) => {
+      // prevent parent element click events
+      event.stopPropagation();
+
+      // fire switch toggle event
+      switchEl.toggleSwitch();
+    });
+  });
+</script>
+<style>
+  .toggle-switch-component {
+    position: relative;
+
+    min-width: 30px;
+    max-width: 30px;
+    height: 10px;
+    border-radius: 20px;
+    border: 1px solid var(--text);
+    padding: 2px;
+
+    cursor: pointer;
+  }
+
+  .toggle-switch-component .toggle-switch-knob {
+    position: relative;
+    left: 0;
+
+    height: 10px;
+    width: 10px;
+    border-radius: 100%;
+    background-color: var(--text);
+
+    transition: left 0.3s ease;
+  }
+
+  .toggle-switch-component.active {
+    border-color: var(--light-blue);
+    background-color: var(--light-blue);
+  }
+
+  .toggle-switch-component.active .toggle-switch-knob {
+    left: 20px;
+  }
+</style>
+{% endmacro %}
