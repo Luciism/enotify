@@ -1,7 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500&display=swap");
 
 * {
   font-family: "Poppins", sans-serif;
+  box-sizing: border-box;
 }
 
 :root {
@@ -45,6 +46,7 @@ html, body {
 .light-hover-overlay {
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .light-hover-overlay:before {

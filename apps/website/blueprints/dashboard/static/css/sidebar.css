@@ -15,6 +15,8 @@
   height: 100%;
   border-right: 1px solid var(--border-color);
   background-color: var(--background);
+
+  z-index: 1;
 }
 
 .sidebar-heading {
@@ -68,4 +70,60 @@
 
 .sidebar-buttons .sidebar-button.active {
   background-color: rgba(255, 255, 255, 0.03);
+}
+
+
+.sidebar-toggle {
+  left: 0;
+  display: none;
+
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  border-bottom-right-radius: 5px;
+}
+
+.sidebar-toggle:hover {
+  background-color: var(--background-secondary);
+}
+
+.sidebar-toggle iconify-icon {
+  transition: transform 0.3s ease-in-out;
+  color: var(--text);
+  font-size: 24px;
+  margin: 0;
+  padding: 0;
+}
+
+@media (width < 800px) {
+  .sidebar-spacing {
+    display: none;
+  }
+
+  .sidebar {
+    left: -230px;
+    transition: left 0.3s ease-in-out;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-toggle {
+    display: flex;
+    transition: left 0.3s ease-in-out;
+  }
+
+  .sidebar.open ~ .sidebar-toggle {
+    left: 230px;
+  }
+
+  .sidebar.open ~ .sidebar-toggle iconify-icon {
+    transform: rotate(180deg);
+  }
+
 }

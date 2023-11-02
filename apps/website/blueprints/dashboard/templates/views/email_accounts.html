@@ -11,41 +11,365 @@
         <span>Add</span>
       </p>
     </div>
+
     <div class="container-content">
-      <div class="email-account-container">
+      <div
+        class="email-account-container"
+        email-address-clear="example@gmail.com"
+        email-address-redacted = "*******@gmail.com"
+        email-account-type="gmail"
+      >
         <div class="email-account-info">
-          <p>example@gmail.com</p>
+          <p>
+            <span email-address-display>*******@gmail.com</span>
+            <iconify-icon
+              visibility-icon
+              email-visibility-off
+              class="circular-button light-hover-overlay"
+              icon="mdi:visibility-off"
+            ></iconify-icon>
+            <iconify-icon
+              visibility-icon
+              email-visibility-on
+              class="circular-button light-hover-overlay"
+              icon="mdi:visibility"
+            ></iconify-icon>
+          </p>
           <div class="email-account-buttons">
-            <p class="email-account-edit-btn"><iconify-icon icon="mdi:cog"></iconify-icon></p>
-            <p class="email-account-delete-btn"><iconify-icon icon="iconamoon:trash-fill"></iconify-icon></iconify-icon></p>
+            <p edit-btn class="email-account-edit-btn circular-button light-hover-overlay">
+              <iconify-icon icon="mdi:cog"></iconify-icon>
+            </p>
+            <p delete-btn class="email-account-delete-btn circular-button light-hover-overlay">
+              <iconify-icon icon="iconamoon:trash-fill"></iconify-icon>
+            </p>
           </div>
         </div>
-        <div class="email-account-settings">
+
+        <div class="email-account-settings-wrapper">
+
           <div
-            email-whitelist-toggle-switch
-            class="email-account-settings-option light-hover-overlay"
-            email-address="example@gmail.com"
+            setting="primary-settings"
+            class="email-account-settings primary-view active"
           >
-          <div class="settings-option-text-container">
-            <p class="settings-option-title">Sender Whitelist</p>
-          </div>
-            {{ toggle_switch() }}
+            <div
+              email-whitelist-toggle-switch
+              class="email-account-settings-option light-hover-overlay"
+            >
+            <div class="settings-option-text-container">
+              <p class="settings-option-title">Sender Whitelist</p>
+            </div>
+              {{ toggle_switch() }}
+            </div>
+
+            <div
+              references="manage-sender-whitelist"
+              parent-setting="primary-settings"
+              class="email-account-settings-option light-hover-overlay"
+            >
+              <div class="settings-option-text-container">
+                <p class="settings-option-title">Manage Sender Whitelist</p>
+                <p class="settings-option-description">
+                  Customize which emails you recieve notifications for by whitelisting certain senders
+                </p>
+              </div>
+              <iconify-icon icon="mingcute:right-line"></iconify-icon>
+            </div>
           </div>
 
           <div
-            class="email-account-settings-option light-hover-overlay"
-            email-address="example@gmail.com"
+            setting="manage-sender-whitelist"
+            class="email-account-settings secondary-view"
           >
-            <div class="settings-option-text-container">
-              <p class="settings-option-title">Manage Sender Whitelist</p>
-              <p class="settings-option-description">
-                Customize which emails you recieve notifications for by whitelisting certain senders
+            <div class="email-account-settings-list-top">
+              <p
+                references="primary-settings"
+                parent-setting="manage-sender-whitelist"
+                class="back-arrow"
+              >
+                <iconify-icon class="circular-button light-hover-overlay" icon="octicon:arrow-left-24"></iconify-icon>
+                <span>Manage Sender Whitelist</span>
+              </p>
+              <p class="small-new-button circular-button light-hover-overlay" whitelist-add-button>
+                <iconify-icon icon="fluent:add-16-regular"></iconify-icon>
               </p>
             </div>
-            <iconify-icon icon="mingcute:right-line"></iconify-icon>
+
+            <div class="listed-email-addresses-container">
+
+              <div class="listed-email-address">
+                <div class="email-address-text-container">
+                  <p class="email-address-text">example@outlook.com</p>
+                </div>
+                <div class="email-address-text-buttons-container">
+                  <iconify-icon class="email-address-options-btn circular-button light-hover-overlay" icon="tabler:dots"></iconify-icon>
+                </div>
+              </div>
+
+              <div class="listed-email-address">
+                <div class="email-address-text-container">
+                  <p class="email-address-text">example@outlook.com</p>
+                </div>
+                <div class="email-address-text-buttons-container">
+                  <iconify-icon class="email-address-options-btn circular-button light-hover-overlay" icon="tabler:dots"></iconify-icon>
+                </div>
+              </div>
+
+              <div class="listed-email-address">
+                <div class="email-address-text-container">
+                  <p class="email-address-text">example@outlook.com</p>
+                </div>
+                <div class="email-address-text-buttons-container">
+                  <iconify-icon class="email-address-options-btn circular-button light-hover-overlay" icon="tabler:dots"></iconify-icon>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
+
       </div>
     </div>
+
+    <!-- <hr class="horizontal-divider">
+
+    <div class="container-content">
+      <div
+        class="email-account-container"
+        email-address-clear="example@gmail.com"
+        email-address-redacted = "*******@gmail.com"
+        email-account-type="gmail"
+      >
+        <div class="email-account-info">
+          <p>
+            <span email-address-display>*******@gmail.com</span>
+            <iconify-icon
+              visibility-icon
+              email-visibility-off
+              class="light-hover-overlay"
+              icon="mdi:visibility-off"
+            ></iconify-icon>
+            <iconify-icon
+              visibility-icon
+              email-visibility-on
+              class="light-hover-overlay"
+              icon="mdi:visibility"
+            ></iconify-icon>
+          </p>
+          <div class="email-account-buttons">
+            <p edit-btn class="email-account-edit-btn light-hover-overlay">
+              <iconify-icon icon="mdi:cog"></iconify-icon>
+            </p>
+            <p delete-btn class="email-account-delete-btn light-hover-overlay">
+              <iconify-icon icon="iconamoon:trash-fill"></iconify-icon>
+            </p>
+          </div>
+        </div>
+
+        <div class="email-account-settings-wrapper">
+
+          <div
+            setting="primary-settings"
+            class="email-account-settings primary-view active"
+          >
+            <div
+              email-whitelist-toggle-switch
+              class="email-account-settings-option light-hover-overlay"
+            >
+            <div class="settings-option-text-container">
+              <p class="settings-option-title">Sender Whitelist</p>
+            </div>
+              {{ toggle_switch() }}
+            </div>
+
+            <div
+              references="manage-sender-whitelist"
+              parent-setting="primary-settings"
+              class="email-account-settings-option light-hover-overlay"
+            >
+              <div class="settings-option-text-container">
+                <p class="settings-option-title">Manage Sender Whitelist</p>
+                <p class="settings-option-description">
+                  Customize which emails you recieve notifications for by whitelisting certain senders
+                </p>
+              </div>
+              <iconify-icon icon="mingcute:right-line"></iconify-icon>
+            </div>
+          </div>
+
+          <div
+            setting="manage-sender-whitelist"
+            class="email-account-settings secondary-view"
+          >
+            <div style="display: flex; justify-content: space-between;">
+              <p
+                references="primary-settings"
+                parent-setting="manage-sender-whitelist"
+                class="back-arrow"
+              >
+                <iconify-icon class="light-hover-overlay" icon="octicon:arrow-left-24"></iconify-icon>
+                <span>Manage Sender Whitelist</span>
+              </p>
+              <p class="small-new-button" whitelist-add-button>
+                <iconify-icon icon="mingcute:add-fill"></iconify-icon>
+                <span>New</span>
+              </p>
+            </div>
+
+            <div class="listed-email-addresses-container">
+
+              <div class="listed-email-address">
+                <div class="email-address-text-container">
+                  <p class="email-address-text">example@outlook.com</p>
+                </div>
+                <div class="email-address-text-buttons-container">
+                  <iconify-icon class="email-address-options-btn" icon="tabler:dots"></iconify-icon>
+                </div>
+              </div>
+
+              <div class="listed-email-address">
+                <div class="email-address-text-container">
+                  <p class="email-address-text">example@outlook.com</p>
+                </div>
+                <div class="email-address-text-buttons-container">
+                  <iconify-icon class="email-address-options-btn" icon="tabler:dots"></iconify-icon>
+                </div>
+              </div>
+
+              <div class="listed-email-address">
+                <div class="email-address-text-container">
+                  <p class="email-address-text">example@outlook.com</p>
+                </div>
+                <div class="email-address-text-buttons-container">
+                  <iconify-icon class="email-address-options-btn" icon="tabler:dots"></iconify-icon>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <hr class="horizontal-divider">
+
+    <div class="container-content">
+      <div
+        class="email-account-container"
+        email-address-clear="example@gmail.com"
+        email-address-redacted = "*******@gmail.com"
+        email-account-type="gmail"
+      >
+        <div class="email-account-info">
+          <p>
+            <span email-address-display>*******@gmail.com</span>
+            <iconify-icon
+              visibility-icon
+              email-visibility-off
+              class="light-hover-overlay"
+              icon="mdi:visibility-off"
+            ></iconify-icon>
+            <iconify-icon
+              visibility-icon
+              email-visibility-on
+              class="light-hover-overlay"
+              icon="mdi:visibility"
+            ></iconify-icon>
+          </p>
+          <div class="email-account-buttons">
+            <p edit-btn class="email-account-edit-btn light-hover-overlay">
+              <iconify-icon icon="mdi:cog"></iconify-icon>
+            </p>
+            <p delete-btn class="email-account-delete-btn light-hover-overlay">
+              <iconify-icon icon="iconamoon:trash-fill"></iconify-icon>
+            </p>
+          </div>
+        </div>
+
+        <div class="email-account-settings-wrapper">
+
+          <div
+            setting="primary-settings"
+            class="email-account-settings primary-view active"
+          >
+            <div
+              email-whitelist-toggle-switch
+              class="email-account-settings-option light-hover-overlay"
+            >
+            <div class="settings-option-text-container">
+              <p class="settings-option-title">Sender Whitelist</p>
+            </div>
+              {{ toggle_switch() }}
+            </div>
+
+            <div
+              references="manage-sender-whitelist"
+              parent-setting="primary-settings"
+              class="email-account-settings-option light-hover-overlay"
+            >
+              <div class="settings-option-text-container">
+                <p class="settings-option-title">Manage Sender Whitelist</p>
+                <p class="settings-option-description">
+                  Customize which emails you recieve notifications for by whitelisting certain senders
+                </p>
+              </div>
+              <iconify-icon icon="mingcute:right-line"></iconify-icon>
+            </div>
+          </div>
+
+          <div
+            setting="manage-sender-whitelist"
+            class="email-account-settings secondary-view"
+          >
+            <div style="display: flex; justify-content: space-between;">
+              <p
+                references="primary-settings"
+                parent-setting="manage-sender-whitelist"
+                class="back-arrow"
+              >
+                <iconify-icon class="light-hover-overlay" icon="octicon:arrow-left-24"></iconify-icon>
+                <span>Manage Sender Whitelist</span>
+              </p>
+              <p class="small-new-button" whitelist-add-button>
+                <iconify-icon icon="mingcute:add-fill"></iconify-icon>
+                <span>New</span>
+              </p>
+            </div>
+
+            <div class="listed-email-addresses-container">
+
+              <div class="listed-email-address">
+                <div class="email-address-text-container">
+                  <p class="email-address-text">example@outlook.com</p>
+                </div>
+                <div class="email-address-text-buttons-container">
+                  <iconify-icon class="email-address-options-btn" icon="tabler:dots"></iconify-icon>
+                </div>
+              </div>
+
+              <div class="listed-email-address">
+                <div class="email-address-text-container">
+                  <p class="email-address-text">example@outlook.com</p>
+                </div>
+                <div class="email-address-text-buttons-container">
+                  <iconify-icon class="email-address-options-btn" icon="tabler:dots"></iconify-icon>
+                </div>
+              </div>
+
+              <div class="listed-email-address">
+                <div class="email-address-text-container">
+                  <p class="email-address-text">example@outlook.com</p>
+                </div>
+                <div class="email-address-text-buttons-container">
+                  <iconify-icon class="email-address-options-btn" icon="tabler:dots"></iconify-icon>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div> -->
   </div>
 </div>

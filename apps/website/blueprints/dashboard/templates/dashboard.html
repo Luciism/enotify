@@ -2,12 +2,11 @@
 
 <html lang="en">
   <head>
-    {% include 'components/head.html' %}
-
     <meta charset="utf-8">
-
-    <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {% include 'components/head.html' %}
+    <meta name="description" content="">
 
     <title>Dashboard</title>
 
@@ -28,16 +27,10 @@
     {% include 'components/header.html' %}
     <div class="content-wrapper">
       <div class="sidebar-spacing"></div>
-      <div class="sidebar">
+      <div class="sidebar" id="sidebar">
         <h1 class="sidebar-heading">Dashboard</h1>
 
         <div class="sidebar-buttons">
-
-          <a class="sidebar-button light-hover-overlay" view-btn="example">
-            <div class="sidebar-button-selection-indicator"></div>
-            <iconify-icon icon="clarity:email-solid"></iconify-icon>
-            <span>Example</span>
-          </a>
 
           <a class="sidebar-button light-hover-overlay" view-btn="email_accounts">
             <div class="sidebar-button-selection-indicator"></div>
@@ -54,10 +47,12 @@
         </div>
 
       </div>
+      <div class="sidebar-toggle" id="sidebar-toggle-btn">
+        <iconify-icon icon="mingcute:right-line"></iconify-icon>
+      </div>
 
       <div class="content">
         {% include 'views/email_accounts.html' %}
-        {% include 'views/example.html' %}
       </div>
     </div>
   </body>

@@ -34,6 +34,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 5px 35px;
 }
 
 .dashboard-container .container-header h1 {
@@ -43,9 +44,9 @@
   font-size: 22px;
 }
 
-.dashboard-container .container-content {
+/* .dashboard-container .container-content {
   padding: 5px 35px;
-}
+} */
 
 .dashboard-container .container-header .add-button {
   border-color: var(--light-blue);
@@ -61,4 +62,35 @@
 
 .dashboard-container .container-header .add-button:hover {
   transform: translateY(-2px) scale(1.02);
+}
+
+
+@media (width < 1100px) {
+  .dashboard-container {
+    width: 85%;
+  }
+}
+
+@media (width < 1000px) {
+  .dashboard-container {
+    width: 95%;
+  }
+}
+
+@media (width < 1000px) {
+  .dashboard-container {
+    width: 100%;
+  }
+}
+
+@media (width < 850px) {
+  .content {
+    padding: 15px 10px;
+  }
+}
+
+@media (width < 800px) {
+  .dashboard-container .container-content {
+    padding: 5px 15px;
+  }
 }

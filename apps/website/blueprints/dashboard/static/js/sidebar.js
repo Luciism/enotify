@@ -66,3 +66,12 @@ sidebarViewBtns.forEach((viewButton) => {
 // set default active view to first view
 const firstKey = Object.keys(viewMap)[0];
 switchDashboardView(firstKey);
+
+
+// sidebar toggling for mobile
+const sidebar = document.getElementById('sidebar');
+const sidebarToggleButton = document.getElementById('sidebar-toggle-btn');
+
+sidebarToggleButton.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+});
