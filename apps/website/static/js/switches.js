@@ -1,18 +1,17 @@
-{% macro toggle_switch(id=None) %}
-{% if not id %}
-{% set id = 'toggle-switch-' + (range(1, 1000000000)|random|string) %}
-{% endif %}
-<div
-  toggle-switch-component
-  class="toggle-switch-component"
-  id="{{ id }}"
->
-  <div class="toggle-switch-knob"></div>
-</div>
+function buildToggleSwitchElement(toggledOn=false, elementId=null) {
+    const idAttribute = elementId !== null ? `id="${elementId}"` : '';
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const switchEl = document.getElementById("{{ id }}");
+    const switchHTML = `
+        <div
+            toggle-switch-component
+            class="toggle-switch-component${toggledOn ? ' active' : ''}"
+            ${idAttribute}
+        >
+            <div class="toggle-switch-knob"></div>
+        </div>
+    `
+
+    const switchEl = createElementFromHTML(switchHTML);
 
     switchEl.toggleSwitch = () => {
       switchEl.classList.toggle("active");
@@ -33,6 +32,6 @@
       // fire switch toggle event
       switchEl.toggleSwitch();
     });
-  });
-</script>
-{% endmacro %}
+
+    return switchEl
+}

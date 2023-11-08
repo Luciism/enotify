@@ -1,6 +1,5 @@
 import os
 import logging
-import socket
 from urllib.parse import urljoin
 
 import jwt
@@ -42,13 +41,7 @@ gmail_bp = Blueprint(
 
 @gmail_bp.route('/gmail/authorize')
 async def authorize():
-    uri = oauth2.authorization_url(
-        client_creds=gmail.client_creds,
-        access_type='offline',
-        prompt='consent'
-        # state=request.cookies.get('session')
-    )
-    return redirect(uri)
+    return redirect(gmail.auth_url)
 
 
 @gmail_bp.route('/gmail/callback')
