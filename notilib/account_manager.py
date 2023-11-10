@@ -61,7 +61,6 @@ class Account:
         self._permissions = self.__default
         self._blacklisted = self.__default
         self._exists = self.__default
-        self._gmail_email_addresses = self.__default
 
 
     async def _load_account_table(self):
@@ -77,7 +76,6 @@ class Account:
             self._creation_timestamp = account.creation_timestamp
             self._permissions = account.permissions or []
             self._blacklisted = account.blacklisted
-            self._gmail_email_addresses = account.gmail_email_addresses or []
 
             return
 
@@ -95,7 +93,6 @@ class Account:
         creation_timestamp: float=None,
         permissions: list | str=None,
         blacklisted: bool=False,
-        gmail_email_addresses: list[str]=None,
         conn: Connection=None
     ) -> bool:
         """
@@ -104,8 +101,6 @@ class Account:
         :param creation_timestamp: override the creation timestamp of the account
         :param permissions: set the permissions for the user
         :param blacklisted: set whether the accounts is blacklisted
-        :param gmail_email_addresses: a list of gmail email addresses to\
-            add to the account
         :param conn: an open database connection to execute on, if left as None,\
             one will be acquired automatically (must be passed as a keyword argument)
 
@@ -117,7 +112,6 @@ class Account:
             creation_timestamp=creation_timestamp,
             permissions=permissions,
             blacklisted=blacklisted,
-            gmail_email_addresses=gmail_email_addresses,
             conn=conn
         )
 
@@ -210,13 +204,6 @@ class Account:
         if self._exists is self.__default:
             await self._load_account_table()
         return self._exists
-
-    @property
-    async def gmail_email_addresses(self) -> list[str]:
-        """A list of gmail email addresses associated with the account"""
-        if self._gmail_email_addresses is self.__default:
-            await self._load_account_table()
-        return self._gmail_email_addresses
 
     @property
     def permission_manager(self) -> PermissionManager:

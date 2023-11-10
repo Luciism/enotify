@@ -1,14 +1,12 @@
-import json
 import logging
 import os
 from base64 import b64decode
 
 from aiogoogle import Aiogoogle, GoogleAPI
 from aiogoogle.auth import UserCreds
-from asyncpg import Connection, Record
+from asyncpg import Connection
 
 from .credentials import (
-    refresh_user_credentials,
     load_user_credentials,
     client_creds
 )

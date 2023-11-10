@@ -18,7 +18,6 @@ class AccountDataTuple(NamedTuple):
     creation_timestamp: float
     permissions: list[str]
     blacklisted: int
-    gmail_email_addresses: list[str]
 
 
 @ensure_connection
@@ -28,7 +27,6 @@ async def create_account(
     creation_timestamp: float=None,
     permissions: list[str] | str=None,
     blacklisted: bool=False,
-    gmail_email_addresses: list[str]=None,
     conn: Connection=None
 ) -> bool:
     """
@@ -38,8 +36,6 @@ async def create_account(
     :param creation_timestamp: override the creation timestamp of the account
     :param permissions: set the permissions for the user
     :param blacklisted: set whether the accounts is blacklisted
-    :param gmail_email_addresses: a list of gmail email addresses to add to\
-        the account
     :param conn: an open database connection to execute on, if left as `None`,\
         one will be acquired automatically (must be passed as a keyword argument)
 
@@ -69,12 +65,10 @@ async def create_account(
 
     # join the column names and placeholder values
     column_names = ', '.join(data.keys())
-    placeholders = create_query_placeholders(len(data.values()), start=3)
+    placeholders = create_query_placeholders(len(data.values()))
 
     await conn.execute(
-        f'INSERT INTO accounts (gmail_email_addresses, {column_names}) '
-        f'VALUES (encrypt_array($1, $2), {placeholders})',
-        gmail_email_addresses, os.getenv('database_encryption_key'),
+        f'INSERT INTO accounts ({column_names}) VALUES ({placeholders})',
         *tuple(data.values())
     )
     return True
@@ -103,10 +97,8 @@ async def delete_account(
 
 async def __select_account_data(discord_id: int, conn: Connection):
     return await conn.fetchrow(
-        'SELECT account_id, discord_id, creation_timestamp, permissions, blacklisted, '
-        'decrypt_array(gmail_email_addresses, $2) AS gmail_email_addresses '
-        'FROM accounts WHERE discord_id = $1',
-        discord_id, os.getenv('database_encryption_key'))
+        'SELECT account_id, discord_id, creation_timestamp, permissions, blacklisted '
+        'FROM accounts WHERE discord_id = $1', discord_id)
 
 
 @ensure_connection
@@ -122,7 +114,7 @@ async def get_account(
     :param conn: an open database connection to execute on, if left as `None`,\
         one will be acquired automatically (must be passed as a keyword argument)
     """
-    account_data = await __select_account_data(discord_id, conn)
+    account_data = await __select_account_data(discord_id, conn=conn)
 
     if account_data is None:
         # return no data if "create if not exists" is False

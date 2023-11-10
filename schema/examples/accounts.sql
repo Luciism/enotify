@@ -1,3 +1,5 @@
+-- EXAMPLES MAY NOT BE UP TO DATE
+
 -- select decrypted email addresses array
 SELECT array_agg(pgp_sym_decrypt(element::bytea, 'key')) AS gmail_email_addresses
 FROM accounts, unnest(accounts.gmail_email_addresses) AS element

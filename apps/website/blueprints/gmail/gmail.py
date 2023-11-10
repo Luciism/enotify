@@ -94,7 +94,8 @@ async def callback():
         pool = await Database().connect()
 
         async with pool.acquire() as conn:
-            await gmail.add_email_address(user.id, user_info.email, conn=conn)
+            await gmail.GmailEmailAddress(
+                user.id, user_info.email).add_email_address(conn=conn)
             await gmail.save_user_credentials(user_info.email, user_creds, conn=conn)
             await gmail.set_latest_email_id(user_info.email, conn=conn)
 
