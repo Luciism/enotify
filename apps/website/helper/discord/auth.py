@@ -4,6 +4,7 @@ from aiohttp import ClientSession
 from aiohttp_client_cache import CachedSession, SQLiteBackend
 
 from notilib import create_account
+from .info import get_discord_avatar
 
 
 # main requests cache db
@@ -69,19 +70,6 @@ async def enchange_discord_grant(
         return response
 
 
-async def _fetch_discord_user_req(
-    access_token: str,
-    session: ClientSession | CachedSession
-):
-    """Makes actual request with given session"""
-    response = await session.get(
-        url='https://discord.com/api/users/@me',
-        headers={'Authorization': f'Bearer {access_token}'},
-        timeout=10
-    )
-    return response
-
-
 def _safe_int(value: str) -> int | None:
     """Returns `None` if a `TypeError` is raised otherwise `int(value)`"""
     try:
@@ -98,6 +86,7 @@ class DiscordUser:
         """
         self.accent_color: int = discord_info.get('accent_color')
 
+        self.avatar_url = get_discord_avatar(discord_info)
         self.avatar: str = discord_info.get('avatar')
         self.avatar_decoration_data: str | None =\
             discord_info.get('avatar_decoration_data')
@@ -129,6 +118,19 @@ class DiscordUser:
 
     def __repr__(self) -> str:
         return str(self.__dict__)
+
+
+async def _fetch_discord_user_req(
+    access_token: str,
+    session: ClientSession | CachedSession
+):
+    """Makes actual request with given session"""
+    response = await session.get(
+        url='https://discord.com/api/users/@me',
+        headers={'Authorization': f'Bearer {access_token}'},
+        timeout=10
+    )
+    return response
 
 
 async def _fetch_discord_user(access_token: str, cache: bool=False):
@@ -172,7 +174,6 @@ async def fetch_discord_user_dict(
         return None
 
     # create account if it doesn't exist
-    # close conn after since flask uses a different event loop for each request
     await create_account(int(discord_info.get('id')))
     return discord_info
 

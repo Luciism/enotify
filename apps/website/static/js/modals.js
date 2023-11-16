@@ -1,3 +1,46 @@
+// dispatch modal confirmation to any active confirmation modal when enter is pressed
+document.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+        const activeConfirmationModal = document.querySelector(
+            'div.modal-wrapper.active[modal-type="confirmation"]'
+        );
+
+        if (activeConfirmationModal !== null) {
+            activeConfirmationModal.dispatchConfirmationEvent();
+        }
+    }
+});
+
+
+function setModalResponseMsg(modalElement, inputNoteData) {
+    const responseMsgElement = modalElement.querySelector('[response-msg]');
+
+    if (responseMsgElement !== null) {
+        responseMsgElement.style.color = inputNoteData.color;
+        responseMsgElement.textContent = inputNoteData.message;
+        responseMsgElement.classList.add('show');
+    }
+}
+
+function removeModalResponseMsg(modalElement) {
+    const responseMsgElement = modalElement.querySelector('[response-msg]');
+
+    if (responseMsgElement !== null) {
+        responseMsgElement.textContent = '';
+        responseMsgElement.classList.remove('show');
+    }
+}
+
+function startModalLoading(modalElement) {
+    const submitBtn = modalElement.querySelector('[submit-btn]');
+    submitBtn.classList.add('loading');
+}
+
+function stopModalLoading(modalElement) {
+    const submitBtn = modalElement.querySelector('[submit-btn]');
+    submitBtn.classList.remove('loading');
+}
+
 function getModal(modalId) {
     return document.getElementById(modalId);
 }
@@ -5,6 +48,9 @@ function getModal(modalId) {
 function openModal(modalElement, contextData=undefined) {
     modalElement.contextData = contextData;
     modalElement.classList.add('active');
+    removeModalResponseMsg(modalElement);
+
+    stopModalLoading(modalElement);
 
     if (modalElement.getAttribute('modal-type') === 'input') {
         // clear any existing input value
@@ -30,6 +76,7 @@ function clearInput(inputElement) {
 
 function handleInputModal(modalElement) {
     const inputElement = modalElement.querySelector('input');
+    const submitBtn = modalElement.querySelector('[submit-btn]');
 
     // clear input field method
     modalElement.clearInput = () => {
@@ -37,7 +84,9 @@ function handleInputModal(modalElement) {
     }
 
     // dispatch event containing input value
-    function dispatchInputSubmitEvent() {
+    dispatchInputSubmitEvent = () => {
+        submitBtn.classList.add('loading');
+
         const inputSubmitEvent = new CustomEvent("inputSubmit", {
             detail: {
               value: inputElement.value.toLocaleLowerCase()
@@ -56,9 +105,26 @@ function handleInputModal(modalElement) {
     });
 
     // submit when button is pressed
-    const submitBtn = modalElement.querySelector('button[type="submit"]');
     submitBtn.addEventListener('click', () => {
         dispatchInputSubmitEvent();
+    });
+}
+
+function handleConfirmationModal(modalElement) {
+    const submitBtn = modalElement.querySelector('[submit-btn]');
+
+    modalElement.dispatchConfirmationEvent = () => {
+        const inputSubmitEvent = new CustomEvent("confirm");
+        modalElement.dispatchEvent(inputSubmitEvent);
+
+        submitBtn.classList.add('loading');
+        // console.log('event dispatched');
+        // modalElement.close();
+    }
+
+    // submit when button is pressed
+    submitBtn.addEventListener('click', () => {
+        modalElement.dispatchConfirmationEvent();
     });
 }
 
@@ -95,6 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (modalType === 'input') {
             handleInputModal(modalElement);
+        }
+
+        if (modalType === 'confirmation') {
+            handleConfirmationModal(modalElement);
         }
     });
 });

@@ -3,7 +3,6 @@ import json
 import logging
 
 from aiogoogle import HTTPError
-from aiogoogle.models import Request
 from aiogoogle.auth import Oauth2Manager
 from aiogoogle.auth.creds import ClientCreds, UserCreds
 from asyncpg import Connection

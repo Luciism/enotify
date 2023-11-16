@@ -110,7 +110,7 @@
   border-radius: 100%;
   width: 30px;
   height: 30px;
-  outline: 1px solid var(--accent);
+  outline: 1.5px solid var(--accent-alpha);
   cursor: pointer;
 
   transition: transform 0.1s ease;

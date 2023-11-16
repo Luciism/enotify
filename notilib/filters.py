@@ -4,7 +4,6 @@ from asyncpg import Connection
 
 from .common import WebmailServiceLiteral
 from .database import Database, ensure_connection
-from .email_addresses import add_email_address
 
 
 class EmailNotificationFilters:
@@ -76,10 +75,6 @@ class EmailNotificationFilters:
         enabled = bool(enabled)
         self._sender_whitelist_enabled = enabled
 
-        # add email address if it doesn't exist
-        await add_email_address(
-            self.discord_id, self.email_address, self.webmail_service, conn=conn)
-
         # set sender whitelist enabled value in database
         await conn.execute(
             'UPDATE email_notification_filters SET sender_whitelist_enabled = $1 '
@@ -114,10 +109,6 @@ class EmailNotificationFilters:
         if sender_email_address in await self.whitelisted_senders:
             return False
 
-        # add email address if it doesn't exist
-        await add_email_address(
-            self.discord_id, self.email_address, self.webmail_service, conn=conn)
-
         await conn.execute(
             'UPDATE email_notification_filters '
             'SET whitelisted_senders = whitelisted_senders || pgp_sym_encrypt($1, $5) '
@@ -142,11 +133,6 @@ class EmailNotificationFilters:
         :param conn: an open database connection to execute on, if left as `None`,\
             one will be acquired automatically (must be passed as a keyword argument)
         """
-        # add email address if it doesn't exist
-        await add_email_address(
-            self.discord_id, self.email_address, self.webmail_service, conn=conn)
-
-
         await conn.execute(
             'UPDATE email_notification_filters SET whitelisted_senders = '
             'remove_encrypted_array_element($1, whitelisted_senders, $5) '

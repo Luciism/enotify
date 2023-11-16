@@ -1,6 +1,6 @@
 import os
 import logging
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlencode
 
 import jwt
 from aiogoogle import HTTPError
@@ -8,6 +8,7 @@ from aiogoogle.auth import UserCreds
 from aiogoogle.auth.managers import Oauth2Manager
 from quart import (
     Blueprint,
+    make_response,
     redirect,
     request,
     session
@@ -15,7 +16,7 @@ from quart import (
 
 from notilib import Database
 from notilib.email_clients import gmail
-from helper import fetch_discord_user, gmail_received_notify_user
+from helper import fetch_discord_user, gmail_received_notify_user, response_msg
 
 
 logger = logging.getLogger(__name__)
@@ -39,12 +40,23 @@ gmail_bp = Blueprint(
 )
 
 
+@gmail_bp.route('/gmail/authorize/<string:destination>')
 @gmail_bp.route('/gmail/authorize')
-async def authorize():
-    return redirect(gmail.auth_url)
+async def authorize(destination: str=None):
+    resp = await make_response(redirect(gmail.auth_url))
+
+    if destination is not None:
+        # add url params
+        if request.args:
+            destination += f'?{urlencode(request.args)}'
+
+        resp.set_cookie('destination', destination)
+
+    return resp
 
 
-@gmail_bp.route('/gmail/callback')
+
+@gmail_bp.route('/gmail/callback/')
 async def callback():
     # session cookie stored in `state` url param
     # state = request.args.get('state')
@@ -63,7 +75,7 @@ async def callback():
     user = await fetch_discord_user(access_token, cache=True)
 
     if user is None:
-        return 'Failed to fetch discord information'
+        return response_msg('invalid_discord_access_token')
 
     # Handle errors
     if request.args.get('error'):
@@ -103,6 +115,14 @@ async def callback():
         await gmail.watch_user_inbox(user_creds=user_creds)
 
         await Database().cleanup()
+
+        dest_cookie = request.cookies.get('destination')
+        if dest_cookie is not None:
+            resp = await make_response(redirect(f'/{dest_cookie}'))
+            resp.delete_cookie('destination')
+            return resp
+
+        # TODO: change this
         return user_creds
 
     # Should either receive a code or an error

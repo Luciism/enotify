@@ -9,6 +9,7 @@ from .accounts import *
 from .account_manager import *
 from .common import *
 from .database import *
+from .email_addresses import *
 from .exceptions import *
 from .filters import *
 from .functions import *

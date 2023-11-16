@@ -221,7 +221,7 @@
   height: 22px;
 }
 
-.listed-email-addresses-container {
+.listed-email-container {
   padding: 6px 0;
 }
 
@@ -233,7 +233,7 @@
   border-top: 1px solid var(--border-color);
 }
 
-.listed-email-address {
+.listed-email {
   /* border-top: 1px solid var(--border-color); */
   display: flex;
   justify-content: space-between;
@@ -243,9 +243,9 @@
   animation-fill-mode: forwards;
 }
 
-.listed-email-address
-  .email-address-text-container
-  .email-address-text {
+.listed-email
+  .email-text-container
+  .email-text {
   color: var(--text);
   font-size: 12px;
   font-weight: 300;
@@ -253,29 +253,30 @@
   margin: 0;
 }
 
-.listed-email-address
-  .email-address-text-context-menu-wrapper {
+.listed-email
+  .email-text-context-menu-wrapper {
     display: flex;
     align-items: center;
   }
 
-.listed-email-address
-  .email-address-text-context-menu-wrapper
-  .email-address-options-btn {
+.listed-email
+  .email-text-context-menu-wrapper
+  .email-options-btn {
   color: var(--text);
   font-size: 14px;
   margin: 0;
 }
 
-.listed-email-address
-  .email-address-text-context-menu-wrapper
+.listed-email
+  .email-text-context-menu-wrapper
   .context-menu {
     position: fixed;
     right: unset;
     /* transform: translateY(30%); */
     /* margin-top: 40px; */
     margin-left: 20px;
-    transition: none;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 10000;
   }
 
 .email-account-container
@@ -331,8 +332,8 @@
   transform: translate(3px);
 }
 
-@media (width < 800px) {
+@media (width < 600px) {
   .email-account-container {
-    padding: 8px 10px;
+    padding: 3px 10px;
   }
 }

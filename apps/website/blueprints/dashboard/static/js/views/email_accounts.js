@@ -17,16 +17,79 @@ function toggleExpand(element) {
   }
 }
 
-function buildWhitelistedSenderElement(whitelistedSenderEmailAddress, emailAccountAddress) {
+// REQUEST FUNCTIONS
+async function requestRemoveWhitelistedSender(emailAccountData, whitelistedSenderEmailAddress) {
+  const response = await fetch("/dashboard/api/remove-whitelisted-sender", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(
+      {
+        email_account_data: emailAccountData,
+        sender_email_address: whitelistedSenderEmailAddress
+      }
+    ),
+  });
+
+  const data = await response.json();
+  return data;
+}
+
+async function requestAddWhitelistedSender(emailAccountData, whitelistedSenderEmailAddress) {
+  const response = await fetch("/dashboard/api/add-whitelisted-sender", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(
+      {
+        email_account_data: emailAccountData,
+        sender_email_address: whitelistedSenderEmailAddress
+      }
+    ),
+  });
+  const data = await response.json();
+  return data;
+}
+
+async function requestToggleSenderWhitelist(emailAccountData, enabled) {
+  const response = await fetch("/dashboard/api/toggle-sender-whitelist", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(
+      {
+        email_account_data: emailAccountData,
+        enabled: enabled
+      }
+    ),
+  });
+
+  const data = await response.json();
+  return data
+}
+
+async function requestRemoveEmailAccount(emailAccountData) {
+  const response = await fetch("/dashboard/api/remove-email-account", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(
+      {
+        email_account_data: emailAccountData,
+      }
+    ),
+  });
+  const data = await response.json();
+  return data;
+}
+
+// BUILD EMAIL ACCOUNT ELEMENTS
+function buildWhitelistedSenderElement(whitelistedSenderEmailAddress, emailAccountData) {
   const whitelistedSenderElement = createElementFromHTML(`
-    <div class="listed-email-address">
-      <div class="email-address-text-container">
-        <p class="email-address-text">${whitelistedSenderEmailAddress}</p>
+    <div class="listed-email">
+      <div class="email-text-container">
+        <p class="email-text">${whitelistedSenderEmailAddress}</p>
       </div>
-      <div class="email-address-text-context-menu-wrapper">
+      <div class="email-text-context-menu-wrapper">
         <iconify-icon
           context-menu-toggle-button
-          class="email-address-options-btn circular-button light-hover-overlay"
+          class="email-options-btn circular-button light-hover-overlay"
           icon="tabler:dots"
         ></iconify-icon>
 
@@ -58,6 +121,10 @@ function buildWhitelistedSenderElement(whitelistedSenderEmailAddress, emailAccou
 
   toggleBtn.addEventListener('click', () => {
     // toggle context menu
+    const position = toggleBtn.getBoundingClientRect();
+
+    contextMenu.style.top = `${position.top}px`;
+
     contextMenu.classList.toggle('active');
   });
 
@@ -75,8 +142,9 @@ function buildWhitelistedSenderElement(whitelistedSenderEmailAddress, emailAccou
     whitelistedSenderElement.remove();
     console.log(
       `Deleting whitelisted sender "${whitelistedSenderEmailAddress}"`,
-      `from email account "${emailAccountAddress}"`
+      `from email account "${emailAccountData.email_address}"`
     );
+    requestRemoveWhitelistedSender(emailAccountData, whitelistedSenderEmailAddress);
   });
 
   return whitelistedSenderElement
@@ -120,6 +188,7 @@ function setupSenderWhitelistToggleSwitchActions(emailAccountContainer, emailAcc
     console.log(
       `toggling whitelist ${event.detail.active} for ${emailAccountData.email_address}`
     );
+    requestToggleSenderWhitelist(emailAccountData, event.detail.active);
   });
 }
 
@@ -154,15 +223,49 @@ function addWhitelistedSenderElements(emailAccountContainer, emailAccountData) {
     "[sender-whitelist-container]"
   );
 
+  for (let i = 1; i < 150; i++) {
+    const whitelistedSenderElement = buildWhitelistedSenderElement(
+      `emailaddress-${i}`);
+    senderWhitelistContainer.appendChild(whitelistedSenderElement);
+  }
+
   emailAccountData.sender_whitelist.whitelisted_senders.forEach((whitelisted_sender) => {
     // build and add whitelisted sender element
     const whitelistedSenderElement = buildWhitelistedSenderElement(
-      whitelisted_sender, emailAccountData.email_address
+      whitelisted_sender, emailAccountData
     );
 
     senderWhitelistContainer.appendChild(whitelistedSenderElement);
   });
 }
+
+
+// REMOVE EMAIL ACCOUNT
+const removeEmailAccountConfirmationModal = document.getElementById(
+  'confirm-delete-email-account-modal'
+);
+
+removeEmailAccountConfirmationModal.addEventListener('confirm', () => {
+  const emailAccountData =
+    removeEmailAccountConfirmationModal.contextData.emailAccountData;
+
+  const emailAccountContainer =
+    removeEmailAccountConfirmationModal.contextData.emailAccountContainer;
+
+  requestRemoveEmailAccount(emailAccountData).then(data => {
+    if (data.success === true) {
+      // close modal and remove element if successful
+      closeModal(removeEmailAccountConfirmationModal);
+      emailAccountContainer.remove();
+    } else {
+      // set message
+      stopModalLoading(removeEmailAccountConfirmationModal);
+      setModalResponseMsg(removeEmailAccountConfirmationModal, data);
+    }
+  });
+
+  console.log(`Removed email account ${emailAccountData.email_address}`);
+});
 
 
 function setupEmailAccountContainerButtons(emailAccountContainer, emailAccountData) {
@@ -173,7 +276,7 @@ function setupEmailAccountContainerButtons(emailAccountContainer, emailAccountDa
 
   // EMAIL ADDRESS TEXT VISIBILITY
   const emailAddressDisplayText = emailAccountContainer.querySelector(
-    "[email-address-display]"
+    "[email-display]"
   );
 
   const emailTextVisbilityOnIcon = emailAccountInfoElement.querySelector(
@@ -215,17 +318,45 @@ function setupEmailAccountContainerButtons(emailAccountContainer, emailAccountDa
   });
 
 
-  // DELETE BTN
+  // REMOVE EMAIL ACCOUNT BTN
   const emailAccountDeleteBtn = emailAccountContainer.querySelector(
     '[delete-btn]'
   );
 
   emailAccountDeleteBtn.addEventListener('click', () => {
-    // send request to server to delete account
-    console.log(`deleted email account ${emailAccountData.email_address}`);
+    // set modal description to
+    const modalDescriptionElement = removeEmailAccountConfirmationModal.querySelector(
+      '.modal-description'
+    );
 
-    // remove element
-    emailAccountContainer.remove();
+    modalDescriptionElement.innerHTML =
+      `Are you sure would like to remove the email account <code>${emailAccountData.email_address}</code>?`;
+
+
+    openModal(
+      removeEmailAccountConfirmationModal,
+      {
+        emailAccountData: emailAccountData,
+        emailAccountContainer: emailAccountContainer
+      }
+    );
+  });
+
+  // close all active context menus on scroll
+  const settingsViews = Array.from(
+    emailAccountContainer.getElementsByClassName('email-account-settings'
+  ));
+
+  settingsViews.forEach(settingsView => {
+    settingsView.addEventListener('scroll', () => {
+      const contextMenus = Array.from(
+        settingsView.querySelectorAll('.context-menu.active')
+      );
+
+      contextMenus.forEach(contextMenu => {
+        contextMenu.classList.remove('active');
+      });
+    });
   });
 }
 
@@ -264,12 +395,12 @@ function buildEmailAccountElement(emailAccountData) {
     <div class="container-content">
       <div
         class="email-account-container"
-        email-account-type="gmail"
+        email-account-type="${emailAccountData.webmail_service}"
       >
         <div class="email-account-info">
 
           <p>
-            <span email-address-display>${emailAccountData.email_address_redacted}</span>
+            <span email-display>${emailAccountData.email_address_redacted}</span>
             <iconify-icon
               visibility-icon
               email-visibility-off
@@ -345,7 +476,7 @@ function buildEmailAccountElement(emailAccountData) {
               </p>
             </div>
 
-            <div sender-whitelist-container class="listed-email-addresses-container">
+            <div sender-whitelist-container class="listed-email-container">
 
             </div>
           </div>
@@ -377,37 +508,35 @@ document.addEventListener("DOMContentLoaded", () => {
   // add shit to the DOM based on data from backend
   const emailAccountsData = contextData.user.email_accounts;
 
-  const emailAccProviderElRegistry = {};
+  const emailAccServiceElRegistry = {};
 
   // gmail email accounts
   emailAccountsData.forEach((emailAccountData) => {
     // build email account
     const emailAccountElement = buildEmailAccountElement(emailAccountData);
 
-    const emailServiceProvider = emailAccountData.service_provider;
-    let emailAccProviderContainerEl;
+    const webmailService = emailAccountData.webmail_service;
+    let emailAccServiceContainerEl;
 
-    if (emailAccProviderElRegistry[emailServiceProvider] === undefined) {
+    if (emailAccServiceElRegistry[webmailService] === undefined) {
       // obtain element and add it to the registry directly
-      emailAccProviderContainerEl = document.querySelector(
-        `[email-service-provider="${emailServiceProvider}"]`
+      emailAccServiceContainerEl = document.querySelector(
+        `[webmail-service="${webmailService}"]`
       );
 
-      emailAccProviderElRegistry[emailServiceProvider] = emailAccProviderContainerEl;
+      emailAccServiceElRegistry[webmailService] = emailAccServiceContainerEl;
     } else {
       // obtain element from registry directly
-      emailAccProviderContainerEl = emailAccProviderElRegistry[emailServiceProvider];
+      emailAccServiceContainerEl = emailAccServiceElRegistry[webmailService];
     }
 
     // add email account to container element
-    emailAccProviderContainerEl.appendChild(emailAccountElement);
+    emailAccServiceContainerEl.appendChild(emailAccountElement);
   });
 
 
   // SENDER WHITELIST MODAL
-  const senderWhitelistModal = getModal(
-    'add-whitelisted-sender-modal'
-  );
+  const senderWhitelistModal = getModal('add-whitelisted-sender-modal');
 
   // handle input submissions
   senderWhitelistModal.addEventListener('inputSubmit', (event) => {
@@ -417,16 +546,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const inputValue = event.detail.value;
     console.log(`Adding ${inputValue} to sender whitelist of ${emailAddress}`);
+    requestAddWhitelistedSender(modalContextData.emailAccountData, inputValue)
+      .then(data => {
+        if (data.success === true) {
+          senderWhitelistModal.close();
 
-    senderWhitelistModal.close();
+          // add newly whitelisted sender to whitelisted sender element
+          const senderWhitelistContainer = modalContextData.senderWhitelistContainer;
 
-    // add newly whitelisted sender to whitelisted sender element
-    const senderWhitelistContainer = modalContextData.senderWhitelistContainer;
-
-    const whitelistedSenderElement = buildWhitelistedSenderElement(
-      inputValue, modalContextData.emailAccountData.email_address
-    );
-
-    senderWhitelistContainer.appendChild(whitelistedSenderElement);
+          const whitelistedSenderElement = buildWhitelistedSenderElement(
+            inputValue, modalContextData.emailAccountData
+          );
+          senderWhitelistContainer.appendChild(whitelistedSenderElement);
+        } else {
+          stopModalLoading(senderWhitelistModal);
+          setModalResponseMsg(senderWhitelistModal, data);
+        }
+      });
   });
 });

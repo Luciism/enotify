@@ -1,0 +1,43 @@
+{
+  "colors": {
+    "primary": "#e01f1f",
+    "green": "#74e154",
+    "red": "#FC2B2B",
+    "yellow": "#FFE100",
+    "white": "#FFFFFF"
+  },
+  "responses": {
+    "invalid_discord_access_token": {
+      "message": "Failed to fetch discord information, please login again.",
+      "success": false, "color": "red"
+    },
+    "invalid_webmail_service": {
+      "message": "Unknown webmail service.",
+      "success": false, "color": "red"
+    },
+    "invalid_request_data": {
+      "message": "Invalid request body!",
+      "success": false, "color": "red"
+    },
+    "remove_whitelisted_sender_success": {
+      "message": "Successfully removed the sender from your sender whitelist.",
+      "success": true, "color": "primary"
+    },
+    "add_whitelisted_sender_success": {
+      "message": "Successfully added the sender to your sender whitelist.",
+      "success": true, "color": "primary"
+    },
+    "toggle_sender_whitelist_success": {
+      "message": "Successfully toggled sender whitelist.",
+      "success": true, "color": "primary"
+    },
+    "remove_email_account_success": {
+      "message": "Successfully removed email account.",
+      "success": true, "color": "primary"
+    },
+    "invalid_email_address_format": {
+      "message": "Invalid email address format!",
+      "success": false, "color": "red"
+    }
+  }
+}

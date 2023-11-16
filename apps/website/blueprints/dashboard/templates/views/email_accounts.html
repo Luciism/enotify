@@ -1,5 +1,3 @@
-{% from "components/macros/toggle_switch.html" import toggle_switch with context %}
-
 <link rel="stylesheet" href="{{ url_for('.static', filename='css/views/email_accounts.css') }}">
 
 
@@ -16,10 +14,49 @@
         Enter the email address you would like to add to the sender whitelist
       </p>
     </div>
-    <input class="input" type="text" pattern="\d{4,4}" placeholder="example@example.com">
-    <p input-note class="modal-input-note"></p>
+    <input class="input" type="text" placeholder="example@example.com">
+    <p response-msg class="modal-response-msg"></p>
 
-    <button type="submit" class="modal-submit-btn">Add</button>
+    <!-- <button type="submit" class="modal-submit-btn">Add</button> -->
+    <div submit-btn class="modal-submit-btn">
+      <p>Add</p>
+      <div class="dots-loading-animation">
+        <div class="bounce1"></div>
+        <div class="bounce2"></div>
+        <div class="bounce3"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div modal-type="confirmation" class="modal-wrapper" id="confirm-delete-email-account-modal">
+  <div class="modal-content">
+    <iconify-icon
+      class="close-btn circular-button light-hover-overlay"
+      icon="tabler:x"
+    ></iconify-icon>
+
+    <div class="modal-text-container">
+      <p class="modal-heading">Confirm Removal</p>
+      <p class="modal-description">
+        In order to remove this email account, press the confirm button.
+      </p>
+      <p class="modal-description">
+        This will delete all settings for this email account and cannot be undone!
+      </p>
+    </div>
+    <p response-msg class="modal-response-msg"></p>
+
+    <div submit-btn class="modal-submit-btn">
+      <p>Confirm</p>
+      <div class="dots-loading-animation">
+        <div class="bounce1"></div>
+        <div class="bounce2"></div>
+        <div class="bounce3"></div>
+      </div>
+    </div>
+    <!-- <button type="submit" class="modal-submit-btn">Confirm</button> -->
   </div>
 </div>
 
@@ -29,7 +66,7 @@
       <h1>Gmail Accounts</h1>
       <a
         sender-whitelist-add-btn
-        href="{{ data.gmail.auth_url }}"
+        href="/gmail/authorize/dashboard"
         class="add-button outlined-button"
       >
         <iconify-icon icon="mingcute:add-fill"></iconify-icon>
@@ -37,6 +74,7 @@
       </a>
     </div>
 
-    <div email-service-provider="gmail">
+    <div webmail-service="gmail" class="flex-column-reverse">
+    </div>
   </div>
 </div>

@@ -12,6 +12,7 @@
   --primary: #f95656;
   --secondary: #750000;
   --accent: #e01f1f;
+  --accent-alpha: #5b5b5b85;
 
   --border-color: #ffffff1a;
 
@@ -35,7 +36,8 @@ html, body {
 
 *::-webkit-scrollbar {
   width: 0.3em;
-  background-color: #0d0d0d;
+  /* background-color: #0d0d0d; */
+  background-color: #0000002e;
   position: fixed;
   right: 0;
 }
@@ -45,6 +47,18 @@ html, body {
   border-radius: 5px;
 }
 
+code {
+  font-family: monospace;
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.flex-column-reverse {
+ display: flex;
+ flex-direction: column-reverse;
+}
+
 .light-hover-overlay {
   position: relative;
   overflow: hidden;
@@ -52,7 +66,6 @@ html, body {
 }
 
 .light-hover-overlay:before {
-  z-index: 0;
   content: "";
   display: block;
   position: absolute;
@@ -90,7 +103,6 @@ html, body {
 iconify-icon {
   -webkit-user-select: none;
   user-select: none;
-  z-index: 0;
 }
 
 
@@ -106,6 +118,7 @@ iconify-icon {
   overflow: hidden;
   transition: max-height 0.5s ease;
   z-index: 1;
+  opacity: 0;
 }
 
 .context-menu.active {
@@ -113,6 +126,7 @@ iconify-icon {
   height: auto;
   padding: 4px;
   border: 1px solid #ffffff1a;
+  opacity: 1;
 }
 
 .context-menu-section-divider {
@@ -166,7 +180,8 @@ iconify-icon {
 }
 
 .modal-wrapper .modal-content {
-  width: 40%;
+  width: min(90vw, 520px);
+  /* width: 40%; */
   height: 35%;
   background-color: var(--background);
   display: flex;
@@ -217,35 +232,56 @@ iconify-icon {
   position: absolute;
   background-color: var(--accent);
   color: var(--text);
-  outline: none;
-  border: none;
   border-radius: 3px;
   width: auto;
   right: 25px;
   bottom: 25px;
 
   min-width: 20%;
-  /* padding: 10px auto; */
+  padding: 4px 8px;
   font-size: 16px;
   font-weight: 500;
   transition: transform .3s ease-in-out;
   cursor: pointer;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-wrapper .modal-content .modal-submit-btn:hover {
   transform: scale(1.03);
 }
 
-.modal-wrapper .modal-content .modal-input-note {
-  font-size: 8px;
+.modal-wrapper .modal-content .modal-submit-btn p {
+  margin: 0;
+  padding: 0;
+}
+
+.modal-wrapper .modal-content .modal-submit-btn .dots-loading-animation {
+  display: none;
+}
+
+.modal-wrapper .modal-content .modal-submit-btn.loading .dots-loading-animation {
+  display: block;
+}
+
+.modal-wrapper .modal-content .modal-submit-btn.loading p {
+  display: none;
+}
+
+.modal-wrapper .modal-content .modal-response-msg {
+  font-size: 10px;
   font-weight: 200;
   color: white;
   margin: 0;
   padding: 0;
   display: none;
+  margin-left: 2px;
+  margin-top: 2px;
 }
 
-.modal-wrapper .modal-content .modal-input-note.show {
+.modal-wrapper .modal-content .modal-response-msg.show {
   display: block;
 }
 
@@ -298,4 +334,47 @@ iconify-icon {
 
 .toggle-switch-component.active .toggle-switch-knob {
   left: 20px;
+}
+
+
+/* loading animation */
+.dots-loading-animation {
+  width: 70px;
+  text-align: center;
+}
+
+.dots-loading-animation > div {
+  width: 10px;
+  height: 10px;
+  background-color: var(--text);
+
+  border-radius: 100%;
+  display: inline-block;
+  -webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+  animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+}
+
+.dots-loading-animation .bounce1 {
+  -webkit-animation-delay: -0.32s;
+  animation-delay: -0.32s;
+}
+
+.dots-loading-animation .bounce2 {
+  -webkit-animation-delay: -0.16s;
+  animation-delay: -0.16s;
+}
+
+@-webkit-keyframes sk-bouncedelay {
+  0%, 80%, 100% { -webkit-transform: scale(0) }
+  40% { -webkit-transform: scale(1.0) }
+}
+
+@keyframes sk-bouncedelay {
+  0%, 80%, 100% {
+    -webkit-transform: scale(0);
+    transform: scale(0);
+  } 40% {
+    -webkit-transform: scale(1.0);
+    transform: scale(1.0);
+  }
 }

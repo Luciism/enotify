@@ -15,7 +15,7 @@ async def get_email_addresses(
     """
     Returns a list of email addresses associated with the provided discord id
     :param discord_id: the discord id to find the respective email addresses of
-    :param webmail_service:
+    :param webmail_service: ...
     :param conn: an open database connection to execute on, if left as `None`,\
         one will be acquired automatically (must be passed as a keyword argument)
     """
@@ -26,6 +26,27 @@ async def get_email_addresses(
     )
 
     email_addresses = [row['email_address'] for row in rows]
+    return email_addresses
+
+
+@ensure_connection
+async def get_all_email_addresses(
+    discord_id: int,
+    conn: Connection=None
+) -> list[dict[str, str]]:
+    """
+    Returns a list of email addresses associated with the provided discord id\
+        regardless of the webmail service
+    :param discord_id: the discord id to find the respective email addresses of
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically (must be passed as a keyword argument)
+    """
+    email_addresses = await conn.fetch(
+        'SELECT pgp_sym_decrypt(email_address, $2) AS email_address, webmail_service '
+        "FROM email_notification_filters WHERE discord_id = $1",
+        discord_id, os.getenv('database_encryption_key')
+    )
+
     return email_addresses
 
 

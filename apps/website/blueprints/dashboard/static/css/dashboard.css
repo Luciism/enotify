@@ -17,7 +17,7 @@
   display: none;
   box-sizing: border-box;
   margin: 0;
-  padding: 30px 10px;
+  padding: 15px;
   width: 100%;
 }
 
@@ -90,8 +90,14 @@
   }
 }
 
-@media (width < 800px) {
+@media (width < 600px) {
+  .dashboard-container .container-header {
+    padding: 8px 18px;
+  }
+}
+
+/* @media (width < 800px) {
   .dashboard-container .container-content {
     padding: 5px 15px;
   }
-}
+} */
