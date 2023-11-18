@@ -1,9 +1,10 @@
 function setupUserMenu() {
     // get user menu button
-    const userMenuButton = document.getElementById('navbar-user-menu-button');
+    const userMenuWrapper = document.getElementById('navbar-user-menu-wrapper');
+    const userMenuButton = userMenuWrapper.querySelector('#navbar-user-menu-button');
 
     // show button and set image to user's profile picture
-    userMenuButton.style.display = 'block';
+    userMenuWrapper.style.display = 'block';
     userMenuButton.src = userData.avatar_url;
 
     // setup menu
