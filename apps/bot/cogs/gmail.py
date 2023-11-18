@@ -29,6 +29,11 @@ class Gmail(commands.Cog):
         user_ids = await gmail.email_address_to_discord_ids(email_address)
 
         for user_id in user_ids:
+            # dont notify the user if the email properties go against the
+            # user's filter settings
+            if gmail.check_filters(user_id, email_address, email) is False:
+                continue
+
             user = self.client.get_user(user_id)
 
             if user is None:
@@ -39,6 +44,7 @@ class Gmail(commands.Cog):
             await user.send(embed=embed)
 
 
+    # rewatch all user inboxes every 24 hours
     @tasks.loop(hours=24)
     async def rewatch_inboxes(self) -> None:
         user_creds_list = await gmail.load_all_user_credentials()

@@ -105,6 +105,8 @@ class EmailNotificationFilters:
             one will be acquired automatically (must be passed as a keyword argument)
         :return bool: whether the sender was already whitelisted or not
         """
+        sender_email_address = sender_email_address.lower()
+
         # sender is already whitelisted
         if sender_email_address in await self.whitelisted_senders:
             return False
@@ -137,6 +139,6 @@ class EmailNotificationFilters:
             'UPDATE email_notification_filters SET whitelisted_senders = '
             'remove_encrypted_array_element($1, whitelisted_senders, $5) '
             'WHERE discord_id = $2 AND pgp_sym_decrypt(email_address, $5) = $3 '
-            'AND webmail_service = $4', sender_email_address, self.discord_id,
+            'AND webmail_service = $4', sender_email_address.lower(), self.discord_id,
             self.email_address, self.webmail_service, os.getenv('database_encryption_key')
         )

@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from base64 import b64decode
 
 from aiogoogle import Aiogoogle, GoogleAPI
@@ -10,6 +11,7 @@ from .credentials import (
     load_user_credentials,
     client_creds
 )
+from .email_addresses import GmailEmailAddress
 from ...database import Database, ensure_connection
 
 
@@ -118,11 +120,23 @@ class Email:
 
         self._payload = None
 
+        self._sender = None
+
     @property
     def payload(self) -> EmailPayload:
         if self._payload is None:
             self._payload = EmailPayload(self.raw.get('payload'))
         return self._payload
+
+    @property
+    def sender(self) -> str:
+        """The sender of the email for example `Sender <sender@example.com>`"""
+        if self._sender is None:
+            for header in self.payload.headers:
+                if header.name == 'From':
+                    self._sender = header.value
+                    break
+        return self._sender
 
 
 async def __retrieve_email_ids(
@@ -332,3 +346,32 @@ async def retrieve_new_email(email_address: str) -> Email | None:
     if email:
         return email[0]  # email is a list of emails
     return None
+
+
+async def check_filters(
+    discord_id: str,
+    email_address: str,
+    email: Email,
+) -> bool:
+    """
+    Checks if a user wants to be notified of an incoming email based on
+    the filters they have set
+    :param discord_id: the discord id of the user that will be notified
+    :param email_address: the email address of the recipient of the incoming email
+    :param email: the email data of the incoming email
+    """
+    gmail_address = GmailEmailAddress(discord_id, email_address)
+
+    # sender whitelist is enabled
+    if await gmail_address.filters.sender_whitelist_enabled is True:
+        # extract email address portion of email sender
+        # for example, extract `sender@example.com` from `Sender <sender@example.com>`
+        match = re.search(r'<(.*)>', email.sender)
+        sender = match.group(1) if match else email.sender
+
+        # sender is not whitelisted
+        if not sender.lower() in await gmail_address.filters.whitelisted_senders:
+            return False
+
+    # all checks passed
+    return True
