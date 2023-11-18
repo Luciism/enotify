@@ -9,7 +9,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 30px;
+  padding: 60px;
   overflow-y: auto;
 }
 
@@ -17,7 +17,6 @@
   display: none;
   box-sizing: border-box;
   margin: 0;
-  padding: 15px;
   width: 100%;
 }
 
@@ -35,14 +34,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5px 35px;
+  padding: 5px 45px;
 }
 
 .dashboard-container .container-header h1 {
   margin: 0;
   padding: 0;
   color: var(--text);
-  font-size: 22px;
+  font-size: 32px;
 }
 
 /* .dashboard-container .container-content {
@@ -51,8 +50,9 @@
 
 .dashboard-container .container-header .add-button {
   border-color: var(--light-blue);
+  border-width: 2px;
   color: var(--light-blue);
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 500;
   align-items: center;
   display: flex;
@@ -86,13 +86,13 @@
 
 @media (width < 850px) {
   .content {
-    padding: 15px 10px;
+    padding: 60px 10px;
   }
 }
 
 @media (width < 600px) {
   .dashboard-container .container-header {
-    padding: 8px 18px;
+    padding: 30px 18px;
   }
 }
 

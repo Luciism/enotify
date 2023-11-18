@@ -26,7 +26,7 @@
   /* background-color: rgba(255, 255, 255, 0.03); */
   /* border-radius: 5px; */
   border-top: 1px solid var(--border-color);
-  padding: 3px 35px;
+  padding: 3px 45px;
 }
 
 .email-account-container .email-account-info {
@@ -44,7 +44,7 @@
   content: "";
   position: absolute;
   bottom: 0;
-  height: 0.5px;
+  height: 1px;
   background-color: var(--border-color);
 
   /* Apply the animation */
@@ -128,7 +128,7 @@
 
 .email-account-container .email-account-info p,
 .email-account-container .email-account-info .email-account-buttons p {
-  font-size: 16px;
+  font-size: 24px;
 }
 
 .email-account-container .email-account-info {
@@ -187,6 +187,7 @@
   .email-account-settings
   .email-account-settings-list-top
   .back-arrow {
+  font-size: 22px;
   display: flex;
   align-items: center;
   color: var(--text);
@@ -205,24 +206,27 @@
 .email-account-container
   .email-account-settings
   .back-arrow span {
-  font-size: 12px;
-  margin-left: 4px;
+  font-size: 20px;
+  margin-left: 6px;
 }
 
 .small-new-button {
   color: var(--text);
-  font-size: 16px;
+  font-size: 24px;
   align-items: center;
   display: flex;
   margin: 0;
   cursor: pointer;
   transition: transform 0.3s ease-in-out;
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
 }
 
 .listed-email-container {
   padding: 6px 0;
+  /* helps with context menu overlapping */
+  display: flex;
+  flex-direction: column-reverse;
 }
 
 .horizontal-divider {
@@ -237,7 +241,7 @@
   /* border-top: 1px solid var(--border-color); */
   display: flex;
   justify-content: space-between;
-  padding: 0px 20px;
+  padding: 0px 30px;
   animation-name: fade-down;
   animation-duration: 0.5s;
   animation-fill-mode: forwards;
@@ -247,8 +251,8 @@
   .email-text-container
   .email-text {
   color: var(--text);
-  font-size: 12px;
-  font-weight: 300;
+  font-size: 18px;
+  font-weight: 200;
   padding: 0;
   margin: 0;
 }
@@ -263,7 +267,7 @@
   .email-text-context-menu-wrapper
   .email-options-btn {
   color: var(--text);
-  font-size: 14px;
+  font-size: 22px;
   margin: 0;
 }
 
@@ -274,7 +278,7 @@
     right: unset;
     /* transform: translateY(30%); */
     /* margin-top: 40px; */
-    margin-left: 20px;
+    margin-left: 30px;
     transition: opacity 0.3s ease-in-out;
     z-index: 10000;
   }
@@ -293,7 +297,6 @@
   .email-account-settings
   .email-account-settings-option
   p {
-  font-size: 12px;
   color: var(--text);
   margin: 0;
   padding: 0;
@@ -303,7 +306,7 @@
   .email-account-settings
   .email-account-settings-option
   .settings-option-title {
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 300;
 }
 
@@ -311,7 +314,7 @@
   .email-account-settings
   .email-account-settings-option
   .settings-option-description {
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 200;
 }
 
@@ -321,7 +324,7 @@
   .email-account-settings-option
   iconify-icon {
   color: var(--text);
-  font-size: 22px;
+  font-size: 30px;
   transition: transform .3s ease-in-out;
 }
 

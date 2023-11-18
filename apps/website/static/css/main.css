@@ -18,7 +18,7 @@
 
   --light-blue: #0c8ce9;
 
-  --elevation-box-shadow: 0px 1.6px 3.6px rgba(0,0,0,0.25), 0px 0px 2.9px rgba(0,0,0,0.22)
+  --elevation-box-shadow: 0px 1.6px 4.6px rgba(0,0,0,0.25)
 }
 
 
@@ -81,7 +81,7 @@ code {
 
 
 .elevated-container {
-  border-radius: 5px;
+  border-radius: 8px;
 
   background-color: var(--background-secondary);
   box-shadow: var(--elevation-box-shadow);
@@ -89,7 +89,7 @@ code {
 
 
 .outlined-button {
-  border: 0.1rem solid white;
+  border: 0.2rem solid white;
   padding: 0.12rem 0.5rem;
   border-radius: 3px;
 }
@@ -97,7 +97,7 @@ code {
 .circular-button {
   cursor: pointer;
   border-radius: 100%;
-  padding: 3px;
+  padding: 4px;
 }
 
 iconify-icon {
@@ -110,10 +110,8 @@ iconify-icon {
   max-height: 0;
   height: 0; /* hidden */
   position: absolute;
-  margin-top: 1px;
-  right: 0;
-  width: 130px;
-  border-radius: 8px;
+  width: 190px;
+  border-radius: 12px;
   background-color: var(--background-secondary);
   overflow: hidden;
   transition: max-height 0.5s ease;
@@ -124,7 +122,7 @@ iconify-icon {
 .context-menu.active {
   max-height: 250px;
   height: auto;
-  padding: 4px;
+  padding: 6px;
   border: 1px solid #ffffff1a;
   opacity: 1;
 }
@@ -139,17 +137,17 @@ iconify-icon {
 }
 
 .context-menu-section iconify-icon {
-  margin-right: 5px;
+  margin-right: 8px;
 }
 
 .context-menu-option {
-  padding: 5px 8px;
+  padding: 8px 12px;
   margin: 0;
   display: flex;
   align-items: center;
   color: var(--text);
-  font-size: 10px;
-  border-radius: 3px;
+  font-size: 14px;
+  border-radius: 5px;
   text-decoration: none;
 }
 
@@ -180,7 +178,7 @@ iconify-icon {
 }
 
 .modal-wrapper .modal-content {
-  width: min(90vw, 520px);
+  width: min(90vw, 780px);
   /* width: 40%; */
   height: 35%;
   background-color: var(--background);
@@ -188,7 +186,7 @@ iconify-icon {
   flex-direction: column;
   border-radius: 10px;
   box-shadow: var(--elevation-box-shadow);
-  padding: 25px;
+  padding: 36px;
   position: relative;
   transform: scale(0.8);
   transition: transform .3s ease-in-out;
@@ -201,12 +199,13 @@ iconify-icon {
 .modal-wrapper .modal-content .close-btn {
   position: absolute;
   color: var(--text);
-  right: 10px;
-  top: 10px;
+  right: 18px;
+  top: 18px;
+  font-size: 22px;
 }
 
 .modal-wrapper .modal-content .modal-text-container {
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .modal-wrapper .modal-content .modal-heading,
@@ -218,12 +217,12 @@ iconify-icon {
 
 .modal-wrapper .modal-content .modal-heading {
   font-weight: 500;
-  font-size: 24px;
-  line-height: 24px;
+  font-size: 38px;
+  line-height: 38px;
 }
 
 .modal-wrapper .modal-content .modal-description {
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 300;
   padding-left: 1px;
 }
@@ -232,14 +231,14 @@ iconify-icon {
   position: absolute;
   background-color: var(--accent);
   color: var(--text);
-  border-radius: 3px;
+  border-radius: 6px;
   width: auto;
-  right: 25px;
-  bottom: 25px;
+  right: 36px;
+  bottom: 36px;
 
   min-width: 20%;
-  padding: 4px 8px;
-  font-size: 16px;
+  padding: 6px 12px;
+  font-size: 22px;
   font-weight: 500;
   transition: transform .3s ease-in-out;
   cursor: pointer;
@@ -271,7 +270,7 @@ iconify-icon {
 }
 
 .modal-wrapper .modal-content .modal-response-msg {
-  font-size: 10px;
+  font-size: 16px;
   font-weight: 200;
   color: white;
   margin: 0;
@@ -288,12 +287,12 @@ iconify-icon {
 .input {
   background-color: var(--background-secondary);
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   /* border: 1px solid #00000050; */
   box-shadow: var(--elevation-box-shadow);
   color: var(--text);
-  padding: 3px 8px;
-  font-size: 0.8em;
+  padding: 5px 10px;
+  font-size: 20px;
   text-transform: lowercase;
 }
 
@@ -304,12 +303,11 @@ iconify-icon {
 .toggle-switch-component {
   position: relative;
 
-  min-width: 30px;
-  max-width: 30px;
-  height: 10px;
-  border-radius: 20px;
+  min-width: 45px;
+  max-width: 45px;
+  border-radius: 25px;
   border: 1px solid white;
-  padding: 2px;
+  padding: 3px;
 
   cursor: pointer;
   box-sizing: unset;
@@ -319,8 +317,8 @@ iconify-icon {
   position: relative;
   left: 0;
 
-  height: 10px;
-  width: 10px;
+  height: 15px;
+  width: 15px;
   border-radius: 100%;
   background-color: white;
 
@@ -333,7 +331,7 @@ iconify-icon {
 }
 
 .toggle-switch-component.active .toggle-switch-knob {
-  left: 20px;
+  left: 30px;
 }
 
 
