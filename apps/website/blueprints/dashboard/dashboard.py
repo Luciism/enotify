@@ -137,6 +137,65 @@ async def add_whitelisted_sender():
 
 
 @dashboard_bp.route(
+    '/dashboard/api/remove-blacklisted-sender', methods=['POST'])
+async def remove_blacklisted_sender():
+    # validate user
+    access_token = session.get('access_token')
+    user = await fetch_discord_user(access_token, cache=True)
+
+    if user is None:
+        return response_msg('invalid_discord_access_token')
+
+    # get and validate request data
+    request_data: dict = await request.get_json()
+
+    try:
+        email_account_data: dict = request_data['email_account_data']
+        email_address: str = email_account_data['email_address']
+        webmail_service: str = email_account_data['webmail_service']
+
+        sender_email_address: str = request_data['sender_email_address']
+    except KeyError:
+        return response_msg('invalid_request_data')
+
+    filters = EmailNotificationFilters(user.id, email_address, webmail_service)
+    await filters.remove_blacklisted_sender(sender_email_address)
+
+    return response_msg('remove_blacklisted_sender_success')
+
+
+@dashboard_bp.route(
+    '/dashboard/api/add-blacklisted-sender', methods=['POST'])
+async def add_blacklisted_sender():
+    # validate user
+    access_token = session.get('access_token')
+    user = await fetch_discord_user(access_token, cache=True)
+
+    if user is None:
+        return response_msg('invalid_discord_access_token')
+
+    # get and validate request data
+    request_data: dict = await request.get_json()
+
+    try:
+        email_account_data: dict = request_data['email_account_data']
+        email_address: str = email_account_data['email_address']
+        webmail_service: str = email_account_data['webmail_service']
+
+        sender_email_address: str = request_data['sender_email_address']
+    except KeyError:
+        return response_msg('invalid_request_data')
+
+    if not is_email_address_valid(sender_email_address):
+        return response_msg('invalid_email_address_format')
+
+    filters = EmailNotificationFilters(user.id, email_address, webmail_service)
+    await filters.add_blacklisted_sender(sender_email_address)
+
+    return response_msg('add_blacklisted_sender_success')
+
+
+@dashboard_bp.route(
     '/dashboard/api/toggle-sender-whitelist', methods=['POST'])
 async def toggle_whitelisted_sender():
     # validate user

@@ -31,6 +31,14 @@
       "message": "Successfully toggled sender whitelist.",
       "success": true, "color": "primary"
     },
+    "remove_blacklisted_sender_success": {
+      "message": "Successfully removed the sender from your sender blacklist.",
+      "success": true, "color": "primary"
+    },
+    "add_blacklisted_sender_success": {
+      "message": "Successfully added the sender to your sender blacklist.",
+      "success": true, "color": "primary"
+    },
     "remove_email_account_success": {
       "message": "Successfully removed email account.",
       "success": true, "color": "primary"

@@ -370,7 +370,7 @@ async def check_filters(
         sender = match.group(1) if match else email.sender
 
         # sender is not whitelisted
-        if not sender.lower() in await gmail_address.filters.whitelisted_senders:
+        if sender.lower() not in await gmail_address.filters.whitelisted_senders:
             return False
 
     # all checks passed

@@ -48,5 +48,6 @@ CREATE TABLE IF NOT EXISTS email_notification_filters (
   webmail_service TEXT NOT NULL,
   sender_whitelist_enabled BOOL DEFAULT FALSE,
   whitelisted_senders BYTEA[],
+  blacklisted_senders BYTEA[],
   PRIMARY KEY(discord_id, email_address)
 );
