@@ -223,12 +223,6 @@ function addWhitelistedSenderElements(emailAccountContainer, emailAccountData) {
     "[sender-whitelist-container]"
   );
 
-  for (let i = 1; i < 150; i++) {
-    const whitelistedSenderElement = buildWhitelistedSenderElement(
-      `emailaddress-${i}`);
-    senderWhitelistContainer.appendChild(whitelistedSenderElement);
-  }
-
   emailAccountData.sender_whitelist.whitelisted_senders.forEach((whitelisted_sender) => {
     // build and add whitelisted sender element
     const whitelistedSenderElement = buildWhitelistedSenderElement(

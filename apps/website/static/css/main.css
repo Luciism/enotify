@@ -18,7 +18,9 @@
 
   --light-blue: #0c8ce9;
 
-  --elevation-box-shadow: 0px 1.6px 4.6px rgba(0,0,0,0.25)
+  --elevation-box-shadow: 0px 1.6px 4.6px rgba(0,0,0,0.25);
+
+  --header-height: 84px;
 }
 
 
@@ -52,6 +54,13 @@ code {
   background-color: rgba(255, 255, 255, 0.05);
   padding: 2px;
   border-radius: 4px;
+}
+
+.content-wrapper {
+  position: relative;
+  display: flex;
+  flex-grow: 1;
+  max-height: calc(100% - var(--header-height));
 }
 
 .flex-column-reverse {

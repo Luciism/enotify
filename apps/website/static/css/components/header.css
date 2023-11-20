@@ -1,7 +1,7 @@
 /* adds vertical space where the header is because the header is fixed */
 .header,
 .header-spacing {
-  height: 84px;
+  height: var(--header-height);
 }
 
 .header {
