@@ -1,7 +1,7 @@
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script>
 try {
-  var contextData = JSON.parse('{{ data | tojson }}');
+  var contextData = JSON.parse('{% if data %} {{ data | tojson }} {% endif %}');
 } catch (SyntaxError) {
   var contextData = {}
 }

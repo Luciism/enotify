@@ -7,6 +7,10 @@
     "gmail": {
       "receive_socket_port": 15268
     },
-    "webmail_services": ["gmail"]
+    "webmail_services": ["gmail"],
+    "links": {
+      "discord_server": "https://discord.gg/87YHMGEDKH",
+      "invite": "https://discord.com/api/oauth2/authorize?client_id=1156592354334089226&permissions=274877941824&scope=bot"
+    }
   }
 }

@@ -1,7 +1,7 @@
 import os
 import logging
 
-from quart import Quart
+from quart import Quart, render_template
 from dotenv import load_dotenv; load_dotenv()
 
 from notilib import Database, setup_logging, PROJECT_PATH
@@ -38,6 +38,11 @@ async def close_db_pool():
     await db.pool.close()
     db.pool.terminate()
 
+
+# ---------------------------- MISC --------------------------- #
+@app.errorhandler(404)
+async def not_found(error):
+    return await render_template("404.html")
 
 # ---------------------------- RUN ---------------------------- #
 if __name__ == "__main__":
