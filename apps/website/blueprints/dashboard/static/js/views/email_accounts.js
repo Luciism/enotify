@@ -25,13 +25,15 @@ async function requestAddOrRemoveFilteredSender(
   action
 ) {
   // 'add-whitelisted-sender' or 'remove-blacklisted-sender' for example
-  const response = await fetch(`/dashboard/api/${action}-${filter}ed-sender`, {
+  const response = await fetch("/dashboard/api/edit-filtered-sender", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(
       {
         email_account_data: emailAccountData,
-        sender_email_address: filteredSenderEmailAddress
+        sender_email_address: filteredSenderEmailAddress,
+        action: action,
+        filter: filter
       }
     ),
   });

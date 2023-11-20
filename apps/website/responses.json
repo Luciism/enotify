@@ -27,6 +27,10 @@
       "message": "Successfully added the sender to your sender whitelist.",
       "success": true, "color": "primary"
     },
+    "edit_filtered_sender_success": {
+      "message": "Successfully edited the desired filtered sender.",
+      "success": true, "color": "primary"
+    },
     "toggle_sender_whitelist_success": {
       "message": "Successfully toggled sender whitelist.",
       "success": true, "color": "primary"
