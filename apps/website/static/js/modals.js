@@ -12,6 +12,16 @@ document.addEventListener('keypress', (event) => {
 });
 
 
+function setModalHeading(modalElement, headingText) {
+    const headingElement = modalElement.querySelector('.modal-heading');
+    headingElement.textContent = headingText;
+}
+
+function setModalDescription(modalElement, descriptionText) {
+    const descriptionElement = modalElement.querySelector('.modal-description');
+    descriptionElement.textContent = descriptionText;
+}
+
 function setModalResponseMsg(modalElement, inputNoteData) {
     const responseMsgElement = modalElement.querySelector('[response-msg]');
 
@@ -144,6 +154,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         modalElement.toggle = () => {
             toggleModal(modalElement);
+        }
+
+        modalElement.setHeading = (headingText) => {
+            setModalHeading(modalElement, headingText);
+        }
+
+        modalElement.setDescription = (descriptionText) => {
+            setModalDescription(modalElement, descriptionText);
         }
 
         // get button to close modal

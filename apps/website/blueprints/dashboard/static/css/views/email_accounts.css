@@ -169,11 +169,13 @@
   height: auto;
 }
 
-/* .email-account-container .email-account-settings.secondary-view {
-} */
+.email-account-container .email-account-settings.secondary-view {
+  position: absolute;
+}
 
 .email-account-container .email-account-settings.secondary-view.active {
   height: auto;
+  position: relative;
 }
 
 .email-account-container

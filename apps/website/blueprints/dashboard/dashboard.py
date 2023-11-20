@@ -50,6 +50,9 @@ async def _build_email_accounts_data(user_id: int) -> list[dict]:
             'sender_whitelist': {
                 'enabled': await filters.sender_whitelist_enabled,
                 'whitelisted_senders': await filters.whitelisted_senders
+            },
+            'sender_blacklist': {
+                'blacklisted_senders': await filters.blacklisted_senders
             }
         }
         email_accounts_data.append(email_account_data)

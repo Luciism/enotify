@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="{{ url_for('.static', filename='css/views/email_accounts.css') }}">
 
 
-<div modal-type="input" class="modal-wrapper" id="add-whitelisted-sender-modal">
+<div modal-type="input" class="modal-wrapper" id="add-filtered-sender-modal">
   <div class="modal-content">
     <iconify-icon
       class="close-btn circular-button light-hover-overlay"
@@ -9,9 +9,9 @@
     ></iconify-icon>
 
     <div class="modal-text-container">
-      <p class="modal-heading">Whitelist a sender</p>
+      <p class="modal-heading">Filter a sender</p>
       <p class="modal-description">
-        Enter the email address you would like to add to the sender whitelist
+        Enter the email address you would like to add to the sender filter
       </p>
     </div>
     <input class="input" type="text" placeholder="example@example.com">
@@ -65,7 +65,7 @@
     <div class="container-content container-header">
       <h1>Gmail Accounts</h1>
       <a
-        sender-whitelist-add-btn
+        filtered-sender-add-btn
         href="/gmail/authorize/dashboard"
         class="add-button outlined-button"
       >

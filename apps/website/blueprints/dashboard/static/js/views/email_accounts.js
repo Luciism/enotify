@@ -18,33 +18,24 @@ function toggleExpand(element) {
 }
 
 // REQUEST FUNCTIONS
-async function requestRemoveWhitelistedSender(emailAccountData, whitelistedSenderEmailAddress) {
-  const response = await fetch("/dashboard/api/remove-whitelisted-sender", {
+async function requestAddOrRemoveFilteredSender(
+  emailAccountData,
+  filteredSenderEmailAddress,
+  filter,
+  action
+) {
+  // 'add-whitelisted-sender' or 'remove-blacklisted-sender' for example
+  const response = await fetch(`/dashboard/api/${action}-${filter}ed-sender`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(
       {
         email_account_data: emailAccountData,
-        sender_email_address: whitelistedSenderEmailAddress
+        sender_email_address: filteredSenderEmailAddress
       }
     ),
   });
 
-  const data = await response.json();
-  return data;
-}
-
-async function requestAddWhitelistedSender(emailAccountData, whitelistedSenderEmailAddress) {
-  const response = await fetch("/dashboard/api/add-whitelisted-sender", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(
-      {
-        email_account_data: emailAccountData,
-        sender_email_address: whitelistedSenderEmailAddress
-      }
-    ),
-  });
   const data = await response.json();
   return data;
 }
@@ -80,11 +71,11 @@ async function requestRemoveEmailAccount(emailAccountData) {
 }
 
 // BUILD EMAIL ACCOUNT ELEMENTS
-function buildWhitelistedSenderElement(whitelistedSenderEmailAddress, emailAccountData) {
-  const whitelistedSenderElement = createElementFromHTML(`
+function buildFilteredSenderElement(filteredSenderEmailAddress, emailAccountData, filter) {
+  const filteredSenderElement = createElementFromHTML(`
     <div class="listed-email">
       <div class="email-text-container">
-        <p class="email-text">${whitelistedSenderEmailAddress}</p>
+        <p class="email-text">${filteredSenderEmailAddress}</p>
       </div>
       <div class="email-text-context-menu-wrapper">
         <iconify-icon
@@ -111,11 +102,11 @@ function buildWhitelistedSenderElement(whitelistedSenderEmailAddress, emailAccou
   `)
 
   // setup context menu and it's buttons
-  const toggleBtn = whitelistedSenderElement.querySelector(
+  const toggleBtn = filteredSenderElement.querySelector(
     '[context-menu-toggle-button]'
   );
 
-  const contextMenu = whitelistedSenderElement.querySelector(
+  const contextMenu = filteredSenderElement.querySelector(
     '.context-menu'
   );
 
@@ -139,15 +130,13 @@ function buildWhitelistedSenderElement(whitelistedSenderEmailAddress, emailAccou
   // actions
   const deleteBtn = contextMenu.querySelector('[action=delete]');
   deleteBtn.addEventListener('click', () => {
-    whitelistedSenderElement.remove();
-    console.log(
-      `Deleting whitelisted sender "${whitelistedSenderEmailAddress}"`,
-      `from email account "${emailAccountData.email_address}"`
-    );
-    requestRemoveWhitelistedSender(emailAccountData, whitelistedSenderEmailAddress);
+    filteredSenderElement.remove();
+
+    requestAddOrRemoveFilteredSender(
+      emailAccountData, filteredSenderEmailAddress, filter, 'remove');
   });
 
-  return whitelistedSenderElement
+  return filteredSenderElement
 }
 
 
@@ -185,51 +174,50 @@ function setupSenderWhitelistToggleSwitchActions(emailAccountContainer, emailAcc
 
   // handle toggle switch action
   switchElement.addEventListener("switchToggle", (event) => {
-    console.log(
-      `toggling whitelist ${event.detail.active} for ${emailAccountData.email_address}`
-    );
     requestToggleSenderWhitelist(emailAccountData, event.detail.active);
   });
 }
 
-
-function setupAddWhitelistedSenderModal(emailAccountContainer, emailAccountData) {
-  const senderWhitelistContainer = emailAccountContainer.querySelector(
-    'div[sender-whitelist-container]'
+function setupAddFilteredSenderModal(emailAccountContainer, emailAccountData, filter) {
+  const filteredSendersContainer = emailAccountContainer.querySelector(
+    `div[sender-${filter}-container]`
   );
 
-  const senderWhitelistAddBtn = emailAccountContainer.querySelector(
-    '[sender-whitelist-add-btn]'
+  const filteredSenderAddBtn = emailAccountContainer.querySelector(
+    `[sender-${filter}-add-btn]`
   );
 
-  const senderWhitelistModal = getModal(
-    'add-whitelisted-sender-modal'
+  const filteredSenderAddModal = getModal(
+    'add-filtered-sender-modal'
   );
 
   const contextData = {
     emailAccountData: emailAccountData,
-    senderWhitelistContainer: senderWhitelistContainer
+    filteredSendersContainer: filteredSendersContainer,
+    filter: filter
   };
 
-  senderWhitelistAddBtn.addEventListener('click', () => {
+  filteredSenderAddBtn.addEventListener('click', () => {
     // open modal to enter email address
-    openModal(senderWhitelistModal, contextData);
+    filteredSenderAddModal.setHeading(`${toTitleCase(filter)} a sender`);
+    filteredSenderAddModal.setDescription(
+      `Enter the email address you would like to add to the sender ${filter}`);
+    openModal(filteredSenderAddModal, contextData);
   });
 }
 
-
-function addWhitelistedSenderElements(emailAccountContainer, emailAccountData) {
-  const senderWhitelistContainer = emailAccountContainer.querySelector(
-    "[sender-whitelist-container]"
+function addFilteredSenderElements(emailAccountContainer, emailAccountData, filter) {
+  const filteredSenderContainer = emailAccountContainer.querySelector(
+    `[sender-${filter}-container]`
   );
 
-  emailAccountData.sender_whitelist.whitelisted_senders.forEach((whitelisted_sender) => {
-    // build and add whitelisted sender element
-    const whitelistedSenderElement = buildWhitelistedSenderElement(
-      whitelisted_sender, emailAccountData
+  emailAccountData[`sender_${filter}`][`${filter}ed_senders`].forEach((filtered_sender) => {
+    // build and add filtered sender element
+    const filteredSenderElement = buildFilteredSenderElement(
+      filtered_sender, emailAccountData, filter
     );
 
-    senderWhitelistContainer.appendChild(whitelistedSenderElement);
+    filteredSenderContainer.appendChild(filteredSenderElement);
   });
 }
 
@@ -258,7 +246,6 @@ removeEmailAccountConfirmationModal.addEventListener('confirm', () => {
     }
   });
 
-  console.log(`Removed email account ${emailAccountData.email_address}`);
 });
 
 
@@ -450,6 +437,21 @@ function buildEmailAccountElement(emailAccountData) {
               </div>
               <iconify-icon icon="mingcute:right-line"></iconify-icon>
             </div>
+
+            <div
+              references="manage-sender-blacklist"
+              parent-setting="primary-settings"
+              class="email-account-settings-option light-hover-overlay"
+            >
+              <div class="settings-option-text-container">
+                <p class="settings-option-title">Manage Sender Blacklist</p>
+                <p class="settings-option-description">
+                  Customize which emails you don't recieve notifications for by blacklisting certain senders
+                </p>
+              </div>
+              <iconify-icon icon="mingcute:right-line"></iconify-icon>
+            </div>
+
           </div>
 
           <div
@@ -470,10 +472,30 @@ function buildEmailAccountElement(emailAccountData) {
               </p>
             </div>
 
-            <div sender-whitelist-container class="listed-email-container">
-
-            </div>
+            <div sender-whitelist-container class="listed-email-container"></div>
           </div>
+
+          <div
+            setting="manage-sender-blacklist"
+            class="email-account-settings secondary-view"
+          >
+            <div class="email-account-settings-list-top">
+              <p
+                references="primary-settings"
+                parent-setting="manage-sender-blacklist"
+                class="back-arrow"
+              >
+                <iconify-icon class="circular-button light-hover-overlay" icon="octicon:arrow-left-24"></iconify-icon>
+                <span>Manage Sender Blacklist</span>
+              </p>
+              <p class="small-new-button circular-button light-hover-overlay" sender-blacklist-add-btn>
+                <iconify-icon icon="fluent:add-28-regular"></iconify-icon>
+              </p>
+            </div>
+
+            <div sender-blacklist-container class="listed-email-container"></div>
+          </div>
+
         </div>
 
       </div>
@@ -485,9 +507,12 @@ function buildEmailAccountElement(emailAccountData) {
   );
 
   setupEmailAccountToggleSwitches(emailAccountContainer, emailAccountData);
-  setupAddWhitelistedSenderModal(emailAccountContainer, emailAccountData);
 
-  addWhitelistedSenderElements(emailAccountContainer, emailAccountData);
+  setupAddFilteredSenderModal(emailAccountContainer, emailAccountData, 'whitelist');
+  addFilteredSenderElements(emailAccountContainer, emailAccountData, 'whitelist');
+
+  setupAddFilteredSenderModal(emailAccountContainer, emailAccountData, 'blacklist');
+  addFilteredSenderElements(emailAccountContainer, emailAccountData, 'blacklist');
 
   setupEmailAccountContainerButtons(emailAccountContainer, emailAccountData);
 
@@ -529,32 +554,32 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  // SENDER WHITELIST MODAL
-  const senderWhitelistModal = getModal('add-whitelisted-sender-modal');
+  // SENDER FILTER MODAL
+  const addFilteredSenderModal = getModal('add-filtered-sender-modal');
 
   // handle input submissions
-  senderWhitelistModal.addEventListener('inputSubmit', (event) => {
-    modalContextData = senderWhitelistModal.contextData;
-    // get corresponding email address from modal context data
-    const emailAddress = modalContextData.emailAccountData.email_address;
+  addFilteredSenderModal.addEventListener('inputSubmit', (event) => {
+    const modalContextData = addFilteredSenderModal.contextData;
+    const filter = modalContextData.filter;
 
     const inputValue = event.detail.value;
-    console.log(`Adding ${inputValue} to sender whitelist of ${emailAddress}`);
-    requestAddWhitelistedSender(modalContextData.emailAccountData, inputValue)
+
+    requestAddOrRemoveFilteredSender(
+      modalContextData.emailAccountData, inputValue, filter, 'add')
       .then(data => {
         if (data.success === true) {
-          senderWhitelistModal.close();
+          addFilteredSenderModal.close();
 
-          // add newly whitelisted sender to whitelisted sender element
-          const senderWhitelistContainer = modalContextData.senderWhitelistContainer;
+          // add newly filtered sender to filtered sender element
+          const filteredSendersContainer = modalContextData.filteredSendersContainer;
 
-          const whitelistedSenderElement = buildWhitelistedSenderElement(
-            inputValue, modalContextData.emailAccountData
+          const filteredSenderElement = buildFilteredSenderElement(
+            inputValue, modalContextData.emailAccountData, filter
           );
-          senderWhitelistContainer.appendChild(whitelistedSenderElement);
+          filteredSendersContainer.appendChild(filteredSenderElement);
         } else {
-          stopModalLoading(senderWhitelistModal);
-          setModalResponseMsg(senderWhitelistModal, data);
+          stopModalLoading(addFilteredSenderModal);
+          setModalResponseMsg(addFilteredSenderModal, data);
         }
       });
   });
