@@ -31,7 +31,7 @@ class Gmail(commands.Cog):
         for user_id in user_ids:
             # dont notify the user if the email properties go against the
             # user's filter settings
-            if gmail.check_filters(user_id, email_address, email) is False:
+            if await gmail.check_filters(user_id, email_address, email) is False:
                 continue
 
             user = self.client.get_user(user_id)

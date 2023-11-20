@@ -362,16 +362,20 @@ async def check_filters(
     """
     gmail_address = GmailEmailAddress(discord_id, email_address)
 
+    # extract email address portion of email sender
+    # for example, extract `sender@example.com` from `Sender <sender@example.com>`
+    match = re.search(r'<(.*)>', email.sender)
+    sender = match.group(1) if match else email.sender
+
     # sender whitelist is enabled
     if await gmail_address.filters.sender_whitelist_enabled is True:
-        # extract email address portion of email sender
-        # for example, extract `sender@example.com` from `Sender <sender@example.com>`
-        match = re.search(r'<(.*)>', email.sender)
-        sender = match.group(1) if match else email.sender
-
         # sender is not whitelisted
         if sender.lower() not in await gmail_address.filters.whitelisted_senders:
             return False
+
+    # sender is blacklist
+    if sender in await gmail_address.filters.blacklisted_senders:
+        return False
 
     # all checks passed
     return True
