@@ -25,7 +25,7 @@ async function requestAddOrRemoveFilteredSender(
   action
 ) {
   // 'add-whitelisted-sender' or 'remove-blacklisted-sender' for example
-  const response = await fetch("/dashboard/api/edit-filtered-sender", {
+  const response = await fetch("/dashboard/api/add-or-remove-filtered-sender", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(
@@ -33,6 +33,30 @@ async function requestAddOrRemoveFilteredSender(
         email_account_data: emailAccountData,
         sender_email_address: filteredSenderEmailAddress,
         action: action,
+        filter: filter
+      }
+    ),
+  });
+
+  const data = await response.json();
+  return data;
+}
+
+async function requestEditFilteredSender(
+  emailAccountData,
+  filteredSenderEmailAddressOld,
+  filteredSenderEmailAddressNew,
+  filter
+) {
+  // 'add-whitelisted-sender' or 'remove-blacklisted-sender' for example
+  const response = await fetch("/dashboard/api/edit-filtered-sender", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(
+      {
+        email_account_data: emailAccountData,
+        sender_email_address_old: filteredSenderEmailAddressOld,
+        sender_email_address_new: filteredSenderEmailAddressNew,
         filter: filter
       }
     ),
@@ -73,7 +97,7 @@ async function requestRemoveEmailAccount(emailAccountData) {
 }
 
 // BUILD EMAIL ACCOUNT ELEMENTS
-function buildFilteredSenderElement(filteredSenderEmailAddress, emailAccountData, filter) {
+function buildFilteredSenderElement(emailAccountContainer, filteredSenderEmailAddress, emailAccountData, filter) {
   const filteredSenderElement = createElementFromHTML(`
     <div class="listed-email">
       <div class="email-text-container">
@@ -130,12 +154,44 @@ function buildFilteredSenderElement(filteredSenderEmailAddress, emailAccountData
   });
 
   // actions
+  // DELETE
   const deleteBtn = contextMenu.querySelector('[action=delete]');
   deleteBtn.addEventListener('click', () => {
     filteredSenderElement.remove();
 
     requestAddOrRemoveFilteredSender(
       emailAccountData, filteredSenderEmailAddress, filter, 'remove');
+  });
+
+
+  // EDIT
+  const filteredSenderManageModal = getModal(
+    'manage-filtered-sender-modal'
+  );
+
+  const filteredSendersContainer = emailAccountContainer.querySelector(
+    `div[sender-${filter}-container]`
+  );
+
+  const modalContextData = {
+    emailAccountContainer: emailAccountContainer,
+    emailAccountData: emailAccountData,
+    filteredSendersContainer: filteredSendersContainer,
+    filter: filter,
+    action: 'edit',
+    original: filteredSenderEmailAddress,
+    filteredSenderElement: filteredSenderElement
+  };
+
+  const editBtn = contextMenu.querySelector('[action=edit]');
+  editBtn.addEventListener('click', () => {
+    filteredSenderManageModal.defaultInput = filteredSenderEmailAddress;
+
+    // open modal to edit email address
+    filteredSenderManageModal.setHeading(`Edit a ${filter}ed sender`);
+    filteredSenderManageModal.setDescription(
+      `Edit the email address of the ${filter}ed sender to reflect your desired value.`);
+    openModal(filteredSenderManageModal, modalContextData);
   });
 
   return filteredSenderElement
@@ -189,22 +245,26 @@ function setupAddFilteredSenderModal(emailAccountContainer, emailAccountData, fi
     `[sender-${filter}-add-btn]`
   );
 
-  const filteredSenderAddModal = getModal(
-    'add-filtered-sender-modal'
+  const filteredSenderManageModal = getModal(
+    'manage-filtered-sender-modal'
   );
 
-  const contextData = {
+  const modalContextData = {
+    emailAccountContainer: emailAccountContainer,
     emailAccountData: emailAccountData,
     filteredSendersContainer: filteredSendersContainer,
-    filter: filter
+    filter: filter,
+    action: 'add'
   };
 
   filteredSenderAddBtn.addEventListener('click', () => {
+    filteredSenderManageModal.defaultInput = null;
+
     // open modal to enter email address
-    filteredSenderAddModal.setHeading(`${toTitleCase(filter)} a sender`);
-    filteredSenderAddModal.setDescription(
+    filteredSenderManageModal.setHeading(`${toTitleCase(filter)} a sender`);
+    filteredSenderManageModal.setDescription(
       `Enter the email address you would like to add to the sender ${filter}`);
-    openModal(filteredSenderAddModal, contextData);
+    openModal(filteredSenderManageModal, modalContextData);
   });
 }
 
@@ -216,7 +276,7 @@ function addFilteredSenderElements(emailAccountContainer, emailAccountData, filt
   emailAccountData[`sender_${filter}`][`${filter}ed_senders`].forEach((filtered_sender) => {
     // build and add filtered sender element
     const filteredSenderElement = buildFilteredSenderElement(
-      filtered_sender, emailAccountData, filter
+      emailAccountContainer, filtered_sender, emailAccountData, filter
     );
 
     filteredSenderContainer.appendChild(filteredSenderElement);
@@ -510,11 +570,11 @@ function buildEmailAccountElement(emailAccountData) {
 
   setupEmailAccountToggleSwitches(emailAccountContainer, emailAccountData);
 
-  setupAddFilteredSenderModal(emailAccountContainer, emailAccountData, 'whitelist');
   addFilteredSenderElements(emailAccountContainer, emailAccountData, 'whitelist');
-
-  setupAddFilteredSenderModal(emailAccountContainer, emailAccountData, 'blacklist');
   addFilteredSenderElements(emailAccountContainer, emailAccountData, 'blacklist');
+
+  setupAddFilteredSenderModal(emailAccountContainer, emailAccountData, 'whitelist');
+  setupAddFilteredSenderModal(emailAccountContainer, emailAccountData, 'blacklist');
 
   setupEmailAccountContainerButtons(emailAccountContainer, emailAccountData);
 
@@ -557,7 +617,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // SENDER FILTER MODAL
-  const addFilteredSenderModal = getModal('add-filtered-sender-modal');
+  const addFilteredSenderModal = getModal('manage-filtered-sender-modal');
 
   // handle input submissions
   addFilteredSenderModal.addEventListener('inputSubmit', (event) => {
@@ -566,23 +626,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const inputValue = event.detail.value;
 
-    requestAddOrRemoveFilteredSender(
-      modalContextData.emailAccountData, inputValue, filter, 'add')
-      .then(data => {
-        if (data.success === true) {
-          addFilteredSenderModal.close();
+    const action = modalContextData.action;
 
-          // add newly filtered sender to filtered sender element
-          const filteredSendersContainer = modalContextData.filteredSendersContainer;
+    if (action === 'add') {
+      // make sure sender isnt already whitelisted
+      if (!modalContextData.emailAccountData[`sender_${filter}`][`${filter}ed_senders`].includes(inputValue)) {
+        requestAddOrRemoveFilteredSender(
+          modalContextData.emailAccountData, inputValue, filter, 'add')
+          .then(data => {
+            if (data.success === true) {
+              addFilteredSenderModal.close();
 
-          const filteredSenderElement = buildFilteredSenderElement(
-            inputValue, modalContextData.emailAccountData, filter
-          );
-          filteredSendersContainer.appendChild(filteredSenderElement);
-        } else {
-          stopModalLoading(addFilteredSenderModal);
-          setModalResponseMsg(addFilteredSenderModal, data);
-        }
-      });
+              // add newly filtered sender to filtered sender element
+              const filteredSendersContainer = modalContextData.filteredSendersContainer;
+
+              const filteredSenderElement = buildFilteredSenderElement(
+                modalContextData.emailAccountContainer, inputValue, modalContextData.emailAccountData, filter
+              );
+              filteredSendersContainer.appendChild(filteredSenderElement);
+            } else {
+              stopModalLoading(addFilteredSenderModal);
+              setModalResponseMsg(addFilteredSenderModal, data);
+            }
+          });
+      } else {
+        // simply close the modal if sender is already whitelisted
+        addFilteredSenderModal.close();
+      }
+
+      return;
+    }
+
+    if (action === 'edit') {
+      const originalFilteredSenderEmail = modalContextData.original;
+
+      requestEditFilteredSender(
+        modalContextData.emailAccountData, originalFilteredSenderEmail, inputValue, filter)
+        .then(data => {
+          if (data.success === true) {
+            addFilteredSenderModal.close();
+
+            // replace text value of original filtered sender element
+            const filteredSenderElement = modalContextData.filteredSenderElement;
+            const filteredSenderElementText = filteredSenderElement.querySelector('p.email-text');
+
+            filteredSenderElementText.textContent = inputValue;
+          } else {
+            stopModalLoading(addFilteredSenderModal);
+            setModalResponseMsg(addFilteredSenderModal, data);
+          }
+        });
+    }
   });
+
 });

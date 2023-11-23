@@ -55,6 +55,7 @@ function getModal(modalId) {
     return document.getElementById(modalId);
 }
 
+
 function openModal(modalElement, contextData=undefined) {
     modalElement.contextData = contextData;
     modalElement.classList.add('active');
@@ -63,8 +64,8 @@ function openModal(modalElement, contextData=undefined) {
     stopModalLoading(modalElement);
 
     if (modalElement.getAttribute('modal-type') === 'input') {
-        // clear any existing input value
-        modalElement.clearInput();
+        // set the modal input value to whatever the default is
+        modalElement.setInput(modalElement.defaultInput || null);
 
         // focus input element
         modalElement.querySelector('input').focus();
@@ -80,7 +81,7 @@ function toggleModal(modalElement) {
     modalElement.classList.toggle('active');
 }
 
-function clearInput(inputElement) {
+function clearModalInput(inputElement) {
     inputElement.value = null;
 }
 
@@ -90,8 +91,13 @@ function handleInputModal(modalElement) {
 
     // clear input field method
     modalElement.clearInput = () => {
-        clearInput(inputElement);
+        clearModalInput(inputElement);
     }
+
+    modalElement.setInput = (inputValue) => {
+        inputElement.value = inputValue;
+    }
+
 
     // dispatch event containing input value
     dispatchInputSubmitEvent = () => {
@@ -128,8 +134,6 @@ function handleConfirmationModal(modalElement) {
         modalElement.dispatchEvent(inputSubmitEvent);
 
         submitBtn.classList.add('loading');
-        // console.log('event dispatched');
-        // modalElement.close();
     }
 
     // submit when button is pressed

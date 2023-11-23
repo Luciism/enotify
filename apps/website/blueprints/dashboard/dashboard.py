@@ -81,8 +81,8 @@ async def dashboard_route():
 
 
 @dashboard_bp.route(
-    '/dashboard/api/edit-filtered-sender', methods=['POST'])
-async def edit_filtered_sender():
+    '/dashboard/api/add-or-remove-filtered-sender', methods=['POST'])
+async def add_or_remove_filtered_sender():
     # validate user
     access_token = session.get('access_token')
     user = await fetch_discord_user(access_token, cache=True)
@@ -132,6 +132,48 @@ async def edit_filtered_sender():
                     await filters.add_blacklisted_sender(sender_email_address)
                 case 'remove':
                     await filters.remove_blacklisted_sender(sender_email_address)
+
+    return response_msg('edit_filtered_sender_success')
+
+
+@dashboard_bp.route(
+    '/dashboard/api/edit-filtered-sender', methods=['POST'])
+async def edit_filtered_sender():
+    # validate user
+    access_token = session.get('access_token')
+    user = await fetch_discord_user(access_token, cache=True)
+
+    if user is None:
+        return response_msg('invalid_discord_access_token')
+
+    # get and validate request data
+    request_data: dict = await request.get_json()
+
+    try:
+        email_account_data: dict = request_data['email_account_data']
+        email_address: str = email_account_data['email_address']
+        webmail_service: str = email_account_data['webmail_service']
+
+        sender_email_address_old: str = request_data['sender_email_address_old']
+        sender_email_address_new: str = request_data['sender_email_address_new']
+        sender_filter: str = request_data['filter']
+    except KeyError:
+        return response_msg('invalid_request_data')
+
+    # make sure options are valid
+    if sender_filter not in ('whitelist', 'blacklist'):
+        return response_msg('invalid_request_data')
+
+    filters = EmailNotificationFilters(user.id, email_address, webmail_service)
+
+    match sender_filter:
+        case 'whitelist':
+            await filters.remove_whitelisted_sender(sender_email_address_old)
+            await filters.add_whitelisted_sender(sender_email_address_new)
+        case 'blacklist':
+            print('blacklist')
+            await filters.remove_blacklisted_sender(sender_email_address_old)
+            await filters.add_blacklisted_sender(sender_email_address_new)
 
     return response_msg('edit_filtered_sender_success')
 

@@ -2,6 +2,7 @@ import logging
 
 from discord.ext import commands, tasks
 
+from notilib import InvalidRefreshTokenError
 from notilib.email_clients import gmail
 from helper import Client, build_gmail_received_embed
 
@@ -16,7 +17,10 @@ class Gmail(commands.Cog):
 
     @commands.Cog.listener()
     async def on_gmail_email_receive(self, email_address: str) -> None:
-        email = await gmail.retrieve_new_email(email_address)
+        try:
+            email = await gmail.retrieve_new_email(email_address)
+        except InvalidRefreshTokenError:
+            return  # user credentials couldn't be refreshed
 
         # false alarm (latest email has already been notified)
         if email is None:
