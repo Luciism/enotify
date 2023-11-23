@@ -1,3 +1,13 @@
+window.addEventListener('resize', () => {
+  const activeContextMenus = Array.from(
+    document.querySelectorAll('.context-menu.active')
+  );
+
+  activeContextMenus.forEach((contextMenu) => {
+    contextMenu.classList.remove('active');
+  });
+});
+
 function toggleExpand(element) {
   if (!element.style.height || element.style.height == "0px") {
     element.style.height =
@@ -140,7 +150,17 @@ function buildFilteredSenderElement(emailAccountContainer, filteredSenderEmailAd
     // toggle context menu
     const position = toggleBtn.getBoundingClientRect();
 
+    // make sure context menu y position is aligned with clicked btn
     contextMenu.style.top = `${position.top}px`;
+
+    // make sure context menu doesn't overflow off of screen
+    if (position.left + contextMenu.offsetWidth >= window.innerWidth) {
+      // make context menu appear on left side of button
+      const toggleBtnPosition = toggleBtn.getBoundingClientRect();
+      contextMenu.style.right = `${window.innerWidth - toggleBtnPosition.left}px`;
+    } else {
+      contextMenu.style.right = '';
+    }
 
     contextMenu.classList.toggle('active');
   });

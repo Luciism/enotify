@@ -78,15 +78,15 @@
   }
 }
 
-@media (width < 850px) {
+@media (width < 900px) {
   .content {
-    padding: 60px 10px;
+    padding: 60px 15px;
   }
 }
 
 @media (width < 600px) {
   .dashboard-container .container-header {
-    padding: 30px 18px;
+    padding: 5px 18px;
   }
 }
 
