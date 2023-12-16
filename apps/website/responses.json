@@ -8,7 +8,7 @@
   },
   "responses": {
     "invalid_discord_access_token": {
-      "message": "Failed to fetch discord information, please login again.",
+      "message": "Failed to authenticate, please login again.",
       "success": false, "color": "red"
     },
     "invalid_webmail_service": {

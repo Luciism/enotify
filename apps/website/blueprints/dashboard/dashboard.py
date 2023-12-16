@@ -12,7 +12,12 @@ from notilib import (
     get_all_email_addresses,
     remove_email_address
 )
-from helper import fetch_discord_user, response_msg, is_email_address_valid
+from helper import (
+    authenticate_user,
+    fetch_discord_user,
+    response_msg,
+    is_email_address_valid
+)
 
 
 logger = logging.getLogger(__name__)
@@ -63,12 +68,7 @@ async def _build_email_accounts_data(user_id: int) -> list[dict]:
 
 @dashboard_bp.route('/dashboard')
 async def dashboard_route():
-    # validate user
-    access_token = session.get('access_token')
-    user = await fetch_discord_user(access_token)
-
-    if user is None:
-        return response_msg('invalid_discord_access_token')
+    user = await authenticate_user()
 
     data = {
         'user': {
@@ -83,12 +83,7 @@ async def dashboard_route():
 @dashboard_bp.route(
     '/dashboard/api/add-or-remove-filtered-sender', methods=['POST'])
 async def add_or_remove_filtered_sender():
-    # validate user
-    access_token = session.get('access_token')
-    user = await fetch_discord_user(access_token, cache=True)
-
-    if user is None:
-        return response_msg('invalid_discord_access_token')
+    user = await authenticate_user()
 
     # get and validate request data
     request_data: dict = await request.get_json()
@@ -139,12 +134,7 @@ async def add_or_remove_filtered_sender():
 @dashboard_bp.route(
     '/dashboard/api/edit-filtered-sender', methods=['POST'])
 async def edit_filtered_sender():
-    # validate user
-    access_token = session.get('access_token')
-    user = await fetch_discord_user(access_token, cache=True)
-
-    if user is None:
-        return response_msg('invalid_discord_access_token')
+    user = await authenticate_user()
 
     # get and validate request data
     request_data: dict = await request.get_json()
@@ -181,12 +171,7 @@ async def edit_filtered_sender():
 @dashboard_bp.route(
     '/dashboard/api/toggle-sender-whitelist', methods=['POST'])
 async def toggle_whitelisted_sender():
-    # validate user
-    access_token = session.get('access_token')
-    user = await fetch_discord_user(access_token, cache=True)
-
-    if user is None:
-        return response_msg('invalid_discord_access_token')
+    user = await authenticate_user()
 
     # get and validate request data
     request_data: dict = await request.get_json()
@@ -209,12 +194,7 @@ async def toggle_whitelisted_sender():
 @dashboard_bp.route(
     '/dashboard/api/remove-email-account', methods=['POST'])
 async def remove_email_account():
-    # validate user
-    access_token = session.get('access_token')
-    user = await fetch_discord_user(access_token, cache=True)
-
-    if user is None:
-        return response_msg('invalid_discord_access_token')
+    user = await authenticate_user()
 
     # get and validate request data
     request_data: dict = await request.get_json()

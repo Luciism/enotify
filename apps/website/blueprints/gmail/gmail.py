@@ -10,13 +10,12 @@ from quart import (
     Blueprint,
     make_response,
     redirect,
-    request,
-    session
+    request
 )
 
 from notilib import Database
 from notilib.email_clients import gmail
-from helper import fetch_discord_user, gmail_received_notify_user, response_msg
+from helper import gmail_received_notify_user, authenticate_user
 
 
 logger = logging.getLogger(__name__)
@@ -40,17 +39,20 @@ gmail_bp = Blueprint(
 )
 
 
-@gmail_bp.route('/gmail/authorize/<string:destination>')
 @gmail_bp.route('/gmail/authorize')
-async def authorize(destination: str=None):
+async def authorize():
+    return redirect(gmail.auth_url)
+
+
+@gmail_bp.route('/gmail/authorize/<string:destination>')
+async def authorize_with_destination(destination: str=None):
     resp = await make_response(redirect(gmail.auth_url))
 
-    if destination is not None:
-        # add url params
-        if request.args:
-            destination += f'?{urlencode(request.args)}'
+    # add url params
+    if request.args:
+        destination += f'?{urlencode(request.args)}'
 
-        resp.set_cookie('destination', destination)
+    resp.set_cookie('destination', destination)
 
     return resp
 
@@ -58,24 +60,8 @@ async def authorize(destination: str=None):
 
 @gmail_bp.route('/gmail/callback/')
 async def callback():
-    # session cookie stored in `state` url param
-    # state = request.args.get('state')
-    # session_cookie = decrypt_session_cookie(state)
-
-    # if not session_cookie:
-    #     return 'Failed to fetch discord information'
-
-    # # loop through all the decrypted items in session_cookie
-    # # and add them back to the session
-    # for key, value in session_cookie.items():
-    #     session[key] = value
-
     # make sure the user is logged in
-    access_token = session.get('access_token')
-    user = await fetch_discord_user(access_token, cache=True)
-
-    if user is None:
-        return response_msg('invalid_discord_access_token')
+    user = await authenticate_user()
 
     # Handle errors
     if request.args.get('error'):

@@ -2,9 +2,11 @@ import urllib.parse
 
 from aiohttp import ClientSession
 from aiohttp_client_cache import CachedSession, SQLiteBackend
+from quart import session
 
 from notilib import create_account
 from .info import get_discord_avatar
+from ..exceptions import InvalidDiscordAccessTokenError
 
 
 # main requests cache db
@@ -195,3 +197,15 @@ async def fetch_discord_user(
 
     # convert user information dict to custom DiscordUser class
     return DiscordUser(discord_info)
+
+
+async def authenticate_user() -> DiscordUser:
+    # fetch discord user using access token stored in user's session cookie
+    access_token = session.get('access_token')
+    user = await fetch_discord_user(access_token, cache=True)
+
+    # raise invalid access token error if user was unable to be validated
+    if user is None:
+        raise InvalidDiscordAccessTokenError
+
+    return user
