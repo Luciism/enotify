@@ -29,6 +29,19 @@ async def get_email_addresses(
     return email_addresses
 
 
+async def __are_credentials_valid(
+    email_address: str,
+    webmail_service: str,
+    conn: Connection
+) -> bool:
+    is_valid: bool = await conn.fetchval(
+        f'SELECT valid FROM {webmail_service}_credentials '
+        'WHERE pgp_sym_decrypt(email_address, $2) = $1',
+        email_address, os.getenv('database_encryption_key')
+    )
+    return is_valid
+
+
 @ensure_connection
 async def get_all_email_addresses(
     discord_id: int,
@@ -43,9 +56,21 @@ async def get_all_email_addresses(
     """
     email_addresses = await conn.fetch(
         'SELECT pgp_sym_decrypt(email_address, $2) AS email_address, webmail_service '
-        "FROM email_notification_filters WHERE discord_id = $1",
+        'FROM email_notification_filters WHERE discord_id = $1',
         discord_id, os.getenv('database_encryption_key')
     )
+
+    # validity of email addresses user creds
+    for i, email_address in enumerate(email_addresses):
+        is_valid = await __are_credentials_valid(
+            email_address=email_address['email_address'],
+            webmail_service=email_address['webmail_service'],
+            conn=conn
+        )
+
+        # convert record to dict and then set valid key
+        email_addresses[i] = dict(email_addresses[i])
+        email_addresses[i]['valid'] = is_valid
 
     return email_addresses
 

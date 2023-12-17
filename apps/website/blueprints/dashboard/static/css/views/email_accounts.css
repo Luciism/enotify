@@ -58,7 +58,8 @@
   align-items: center;
 }
 
-.email-account-container .email-account-info .email-account-buttons p {
+.email-account-container .email-account-info .email-account-buttons [alert-icon],
+.email-account-container .email-account-info .email-account-buttons [btn] {
   padding: 0;
   margin: 0;
 
@@ -70,10 +71,15 @@
 
 .email-account-container
   .email-account-info
+  .email-account-buttons > *:not(:first-child) {
+    margin-left: 3px;
+  }
+
+.email-account-container
+  .email-account-info
   .email-account-buttons
   .email-account-edit-btn {
   color: var(--text);
-  margin-right: 3px;
 }
 
 .email-account-container
@@ -99,7 +105,69 @@
   color: var(--primary);
 }
 
-.email-account-container .email-account-info p {
+.email-account-container
+  .email-account-info
+  .email-account-buttons
+  .email-account-alert-icon-container {
+    display: none;
+    position: relative;
+}
+
+.email-account-container
+  .email-account-info
+  .email-account-buttons
+  .email-account-alert-icon-container
+  .email-account-alert-icon {
+  color: red;
+}
+
+.email-account-container
+  .email-account-info
+  .email-account-buttons
+  .email-account-alert-icon-container
+  .email-account-alert-tooltip {
+    transition: all 0.3s ease-in-out;
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    width: 400px;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 4px 8px;
+    z-index: 10;
+}
+
+.email-account-container
+  .email-account-info
+  .email-account-buttons
+  .email-account-alert-icon-container:hover
+  .email-account-alert-tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+
+.email-account-container
+  .email-account-info
+  .email-account-buttons
+  .email-account-alert-icon-container
+  .email-account-alert-tooltip p {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--text);
+  }
+
+  .email-account-container
+  .email-account-info
+  .email-account-buttons
+  .email-account-alert-icon-container
+  .email-account-alert-tooltip a {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--text);
+  }
+
+.email-account-container .email-account-info .email-display-text {
   color: var(--text);
   margin: 0;
   padding: 0;
@@ -107,27 +175,29 @@
   align-items: center;
 }
 
-.email-account-container .email-account-info p span {
+.email-account-container .email-account-info .email-display-text span {
   font-family: 'Noto Sans Mono', monospace;
 }
 
-.email-account-container .email-account-info p [visibility-icon] {
+.email-account-container .email-account-info .email-display-text [visibility-icon] {
   margin-left: 4px;
 }
 
-.email-account-container .email-account-info p [email-visibility-off] {
+.email-account-container .email-account-info .email-display-text [email-visibility-off] {
   display: none;
 }
 
-.email-account-container .email-account-info p [visibility-icon],
-.email-account-container .email-account-info .email-account-buttons p {
+.email-account-container .email-account-info .email-display-text [visibility-icon],
+.email-account-container .email-account-info .email-account-buttons [btn],
+  .email-account-container .email-account-info .email-account-buttons [alert-icon] {
   cursor: pointer;
   border-radius: 100%;
   padding: 3px;
 }
 
-.email-account-container .email-account-info p,
-.email-account-container .email-account-info .email-account-buttons p {
+.email-account-container .email-account-info .email-display-text,
+.email-account-container .email-account-info .email-account-buttons [btn],
+.email-account-container .email-account-info .email-account-buttons [alert-icon] {
   font-size: 24px;
 }
 

@@ -3,8 +3,7 @@ import logging
 from quart import (
     Blueprint,
     render_template,
-    request,
-    session
+    request
 )
 
 from notilib import (
@@ -14,7 +13,6 @@ from notilib import (
 )
 from helper import (
     authenticate_user,
-    fetch_discord_user,
     response_msg,
     is_email_address_valid
 )
@@ -51,6 +49,7 @@ async def _build_email_accounts_data(user_id: int) -> list[dict]:
         email_account_data = {
             'webmail_service': email_address['webmail_service'],
             'email_address': email_address['email_address'],
+            'valid': email_address['valid'],
             'email_address_redacted': redact_email_address(email_address['email_address']),
             'sender_whitelist': {
                 'enabled': await filters.sender_whitelist_enabled,

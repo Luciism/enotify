@@ -369,7 +369,7 @@ function setupEmailAccountContainerButtons(emailAccountContainer, emailAccountDa
 
   // SETTINGS BTN
   const emailAccountEditBtn =
-    emailAccountContainer.querySelector("[edit-btn]");
+    emailAccountContainer.querySelector('[btn="edit-btn"]');
 
   emailAccountInfoElement.addEventListener("click", (event) => {
     if (
@@ -383,7 +383,7 @@ function setupEmailAccountContainerButtons(emailAccountContainer, emailAccountDa
 
   // REMOVE EMAIL ACCOUNT BTN
   const emailAccountDeleteBtn = emailAccountContainer.querySelector(
-    '[delete-btn]'
+    '[btn="delete-btn"]'
   );
 
   emailAccountDeleteBtn.addEventListener('click', () => {
@@ -421,6 +421,16 @@ function setupEmailAccountContainerButtons(emailAccountContainer, emailAccountDa
       });
     });
   });
+
+
+  // session expired alert icon
+  if (!emailAccountData.valid) {
+    const emailAccountAlertIconElement = emailAccountContainer.querySelector(
+      ".email-account-alert-icon-container"
+    );
+
+    emailAccountAlertIconElement.style.display = 'block';
+  }
 }
 
 
@@ -462,7 +472,7 @@ function buildEmailAccountElement(emailAccountData) {
       >
         <div class="email-account-info">
 
-          <p>
+          <p class="email-display-text">
             <span email-display>${emailAccountData.email_address_redacted}</span>
             <iconify-icon
               visibility-icon
@@ -479,11 +489,21 @@ function buildEmailAccountElement(emailAccountData) {
           </p>
 
           <div class="email-account-buttons">
-            <p edit-btn class="email-account-edit-btn circular-button light-hover-overlay">
+            <div class="email-account-alert-icon-container">
+              <p alert-icon class="email-account-alert-icon circular-button light-hover-overlay">
+                <iconify-icon icon="jam:alert"></iconify-icon>
+              </p>
+
+              <div class="email-account-alert-tooltip">
+                <p>The session for this account has expired, please reauthenticate this account by <a href="/gmail/authorize/dashboard">logging in again</a>.</p>
+              </div>
+            </div>
+
+            <p btn="edit-btn" class="email-account-edit-btn circular-button light-hover-overlay">
               <iconify-icon icon="mdi:cog"></iconify-icon>
             </p>
 
-            <p delete-btn class="email-account-delete-btn circular-button light-hover-overlay">
+            <p btn="delete-btn" class="email-account-delete-btn circular-button light-hover-overlay">
               <iconify-icon icon="iconamoon:trash-fill"></iconify-icon>
             </p>
           </div>

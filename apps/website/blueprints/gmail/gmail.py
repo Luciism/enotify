@@ -97,6 +97,8 @@ async def callback():
             await gmail.save_user_credentials(user_info.email, user_creds, conn=conn)
             await gmail.set_latest_email_id(user_info.email, conn=conn)
 
+            await gmail.set_credentials_validity(user_info.email, valid=True, conn=conn)
+
         # watch inbox for new emails
         await gmail.watch_user_inbox(user_creds=user_creds)
 
