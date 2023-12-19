@@ -2,13 +2,11 @@ import logging
 import os
 from urllib.parse import urljoin
 
-from quart import Blueprint, redirect, request, session
+from quart import Blueprint, redirect, request
 
-from notilib import Database
 from helper import (
     build_discord_auth_url,
-    enchange_discord_grant,
-    fetch_discord_user_dict
+    login_user,
 )
 
 
@@ -47,33 +45,4 @@ async def callback():
     if not code:
         return "Invalid grant!"
 
-    # enchange grant for user access token
-    response = await enchange_discord_grant(
-        client_id=os.getenv('bot_client_id'),
-        client_secret=os.getenv('bot_client_secret'),
-        redirect_uri=callback_redirect_uri,
-        code=code
-    )
-
-    response_data: dict = await response.json()
-
-    # Invalid response
-    if response.status != 200:
-        return ('Failed to obtain access token', response_data)
-
-    access_token = response_data.get('access_token')
-
-    if access_token is None:
-        return f'Failed to obtain access token: {response_data}'
-
-    session['access_token'] = access_token
-    return "Successfully logged in!"
-
-
-@discord_bp.route('/discord/token')
-async def token():
-    access_token = session.get('access_token')
-
-    user = await fetch_discord_user_dict(access_token, cache=True)
-    await Database().cleanup()
-    return user or 'no data'
+    return await login_user(code, callback_redirect_uri)

@@ -26,6 +26,13 @@ app.register_blueprint(gmail_bp)
 app.register_blueprint(discord_bp)
 app.register_blueprint(dashboard_bp)
 
+
+try:
+    from dev_endpoints import dev_endpoints_bp
+    app.register_blueprint(dev_endpoints_bp)
+except ImportError:
+    pass
+
 # -------------------------- DATABASE -------------------------- #
 db = Database()
 
@@ -47,7 +54,7 @@ async def not_found(error) -> str:
 
 @app.errorhandler(InvalidDiscordAccessTokenError)
 async def invalid_discord_access_token_error_handler(error) -> dict:
-        return response_msg('invalid_discord_access_token')
+    return response_msg('invalid_discord_access_token')
 
 # ---------------------------- RUN ---------------------------- #
 if __name__ == "__main__":

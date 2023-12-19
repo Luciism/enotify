@@ -1,17 +1,20 @@
+import os
 import urllib.parse
+from datetime import datetime
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientResponse
 from aiohttp_client_cache import CachedSession, SQLiteBackend
 from quart import session
 
 from notilib import create_account
 from .info import get_discord_avatar
 from ..exceptions import InvalidDiscordAccessTokenError
+from ..utils import response_msg, ResponseMsg
 
 
 # main requests cache db
 cache_backend = SQLiteBackend(
-    cache_name='.cache/cache', expire_after=150)
+    cache_name='.cache/cache', expire_after=150, include_headers=True)
 
 
 def build_discord_auth_url(
@@ -47,22 +50,8 @@ def build_discord_auth_url(
     return url
 
 
-async def enchange_discord_grant(
-    client_id: int,
-    client_secret: str,
-    code: str,
-    redirect_uri: str
-) :
-    # Exchange the authorization code for an access token
+async def __make_discord_token_endpoint_request(data: dict) -> ClientResponse:
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    data = {
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": redirect_uri,
-        "scope": "identify"
-    }
 
     async with ClientSession() as session:
         response = await session.post(
@@ -72,7 +61,92 @@ async def enchange_discord_grant(
         return response
 
 
-def _safe_int(value: str) -> int | None:
+async def enchange_discord_grant_code(
+    code: str,
+    redirect_uri: str
+) -> ClientResponse:
+    """
+    Exchanges discord oauth2 grant code for access token credentials
+    :param code: the discord oauth2 grant code returned in the callback
+    :param redirect_uri: the matching redirect uri for the callback
+    """
+    data = {
+        "client_id": os.getenv('bot_client_id'),
+        "client_secret": os.getenv('bot_client_secret'),
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": redirect_uri,
+        "scope": "identify"
+    }
+
+    # Exchange the authorization code for an access token
+    return await __make_discord_token_endpoint_request(data)
+
+
+async def refresh_discord_access_token(refresh_token: str) -> ClientResponse:
+    """
+    Refreshes a discord access token credential
+    :param refresh_token: the refresh token to use in order to refresh\
+        the access token
+    """
+    # Exchange the authorization code for an access token
+    data = {
+        "client_id": os.getenv('bot_client_id'),
+        "client_secret": os.getenv('bot_client_secret'),
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token
+    }
+
+    return await __make_discord_token_endpoint_request(data)
+
+
+class DiscordUserCreds:
+    def __init__(self, creds_data: dict) -> None:
+        self.token_type: str = creds_data.get('token_type')
+        self.access_token: str = creds_data.get('access_token')
+        self.expires_in: int = creds_data.get('expires_in')
+        self.refresh_token: str = creds_data.get('refresh_token')
+        self.scope: str = creds_data.get('scope', '')
+
+        self.scopes: list = self.scope.split(' ')
+
+
+        expires_at = int(datetime.utcnow().timestamp()) + self.expires_in
+        self.expires_at = expires_at - 5 # remove 5 seconds to account for request time
+
+
+async def set_discord_user_creds(
+    response: ClientResponse,
+    required_scopes: list[str]=['identify']
+) -> ResponseMsg:
+    if response.status != 200:
+        return response_msg('discord_oauth_error')
+
+    response_data: dict = await response.json()
+    creds = DiscordUserCreds(response_data)
+    print(creds.__dict__)  # TODO: remove this line
+
+    # ensure response data is intact
+    if not (
+        isinstance(creds.access_token, str),
+        isinstance(creds.refresh_token, str),
+        isinstance(creds.expires_in, int)
+    ):
+        return response_msg('malformed_response_data')
+
+    # ensure required scopes are met
+    for scope in required_scopes:
+        if not scope in creds.scopes:
+            return response_msg('invalid_scopes')
+
+    # store credentials in session cookie
+    session['discord_credentials'] = creds.__dict__
+
+    return response_msg('discord_oauth_login_success')
+
+
+
+def _int_or_none(value: str) -> int | None:
     """Returns `None` if a `TypeError` is raised otherwise `int(value)`"""
     try:
         return int(value)
@@ -96,11 +170,11 @@ class DiscordUser:
         self.banner: str | None = discord_info.get('banner')
         self.banner_color: str = discord_info.get('banner_color')
 
-        self.discriminator: int = _safe_int(discord_info.get('discriminator'))
+        self.discriminator: int = _int_or_none(discord_info.get('discriminator'))
 
         self.global_name: str = discord_info.get('global_name')
         self.username: str = discord_info.get('username')
-        self.id: int = _safe_int(discord_info.get('id'))
+        self.id: int = _int_or_none(discord_info.get('id'))
 
         self.mfa_enabled: bool = discord_info.get('mfa_enabled')
         self.premium_type: int = discord_info.get('premium_type')
@@ -145,7 +219,7 @@ async def _fetch_discord_user(access_token: str, cache: bool=False):
     # use `aiohttp_client_cache.CachedSession()` with custom sqlite3 backend
     async with CachedSession(
         cache=SQLiteBackend(
-            cache_name='.cache/cache', expire_after=150)
+            cache_name='.cache/cache', expire_after=150, include_headers=True)
     ) as session:
         return await _fetch_discord_user_req(access_token, session)
 
@@ -199,13 +273,57 @@ async def fetch_discord_user(
     return DiscordUser(discord_info)
 
 
-async def authenticate_user() -> DiscordUser:
+async def authenticate_user(
+    required_scopes: list[str]=['identify']
+) -> DiscordUser:
+    """
+    Validates that the user that is currently being handled
+    is logged in (with discord oauth)
+    """
     # fetch discord user using access token stored in user's session cookie
-    access_token = session.get('access_token')
+    discord_credentials: dict = session.get('discord_credentials')
+
+    refresh_token: str = discord_credentials.get('refresh_token')
+    access_token: str = discord_credentials.get('access_token')
+
     user = await fetch_discord_user(access_token, cache=True)
 
-    # raise invalid access token error if user was unable to be validated
+    # access token is invalid, attempt to refresh it
     if user is None:
-        raise InvalidDiscordAccessTokenError
+        # refresh and update discord credentials in session cookie
+        response = await refresh_discord_access_token(refresh_token)
+        await set_discord_user_creds(response, required_scopes)
+
+        # refetch user using new access token
+        new_access_token = (await response.json()).get('access_token')
+        user = await fetch_discord_user(new_access_token, cache=True)
+
+        # user is still not valid, raise error
+        if user is None:
+            raise InvalidDiscordAccessTokenError
 
     return user
+
+
+async def login_user(
+    code: str,
+    callback_redirect_uri: str,
+    required_scopes: list[str]=['identify']
+) -> ResponseMsg:
+    """
+    TODO: setup proper responses with pages
+    Logs a user in to the website using discord oauth
+    :param code: the discord grant code present in the `code` parameter\
+        of the callback url
+    :param callback_redirect_uri: the redirect uri that matches the discord\
+        callback uri
+    :param required_scopes: the scopes that the user is required to grant in\
+        order to login
+    """
+    # enchange grant for user access token
+    response = await enchange_discord_grant_code(
+        redirect_uri=callback_redirect_uri,
+        code=code
+    )
+
+    return await set_discord_user_creds(response, required_scopes)

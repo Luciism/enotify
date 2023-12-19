@@ -50,6 +50,22 @@
     "invalid_email_address_format": {
       "message": "Invalid email address format!",
       "success": false, "color": "red"
+    },
+    "discord_oauth_error": {
+      "message": "An error occured while trying to authenticate with discord.",
+      "success": false, "color": "red"
+    },
+    "discord_oauth_login_success": {
+      "message": "Successfully logged in!",
+      "success": true, "color": "primary"
+    },
+    "malformed_response_data": {
+      "message": "Invalid or malformed response data.",
+      "success": false, "color": "red"
+    },
+    "invalid_scopes": {
+      "message": "Invalid or missing scopes.",
+      "success": false, "color": "red"
     }
   }
 }
