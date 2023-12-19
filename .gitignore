@@ -9,3 +9,4 @@
 secrets/
 desktop.ini
 .hintrc
+apps/website/dev_endpoints.py

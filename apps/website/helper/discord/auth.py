@@ -119,6 +119,14 @@ async def set_discord_user_creds(
     response: ClientResponse,
     required_scopes: list[str]=['identify']
 ) -> ResponseMsg:
+    """
+    Sets the discord credentials in the session cookie if everything
+    is valid
+    :param response: the raw discord `ClientResponse` object from the\
+        `/api/oauth2/token` endpoint
+    :param required_scopes: the scopes the user is required to have granted\
+        in order for the login to succeed
+    """
     if response.status != 200:
         return response_msg('discord_oauth_error')
 
@@ -279,28 +287,37 @@ async def authenticate_user(
     """
     Validates that the user that is currently being handled
     is logged in (with discord oauth)
+    :param required_scopes: the scopes the user is required to have granted\
+        in order for the login to succeed
     """
     # fetch discord user using access token stored in user's session cookie
     discord_credentials: dict = session.get('discord_credentials')
 
-    refresh_token: str = discord_credentials.get('refresh_token')
-    access_token: str = discord_credentials.get('access_token')
+    expires_at: int = discord_credentials.get('expires_at')
 
-    user = await fetch_discord_user(access_token, cache=True)
+    # access token has not expired
+    if not datetime.utcnow().timestamp() >= expires_at:
+        refresh_token: str = discord_credentials.get('refresh_token')
+        access_token: str = discord_credentials.get('access_token')
 
-    # access token is invalid, attempt to refresh it
+        user = await fetch_discord_user(access_token, cache=True)
+
+        # everything is valid
+        if user is not None:
+            return user
+
+    # token is outdated or invalid, attempt to
+    # refresh and update discord credentials in session cookie
+    response = await refresh_discord_access_token(refresh_token)
+    await set_discord_user_creds(response, required_scopes)
+
+    # refetch user using new access token
+    new_access_token = (await response.json()).get('access_token')
+    user = await fetch_discord_user(new_access_token, cache=True)
+
+    # user is still not valid, raise error
     if user is None:
-        # refresh and update discord credentials in session cookie
-        response = await refresh_discord_access_token(refresh_token)
-        await set_discord_user_creds(response, required_scopes)
-
-        # refetch user using new access token
-        new_access_token = (await response.json()).get('access_token')
-        user = await fetch_discord_user(new_access_token, cache=True)
-
-        # user is still not valid, raise error
-        if user is None:
-            raise InvalidDiscordAccessTokenError
+        raise InvalidDiscordAccessTokenError
 
     return user
 
