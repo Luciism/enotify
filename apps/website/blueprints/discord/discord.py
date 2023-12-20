@@ -1,8 +1,9 @@
 import logging
 import os
 from urllib.parse import urljoin
+from uuid import uuid4
 
-from quart import Blueprint, redirect, request
+from quart import Blueprint, redirect, request, session
 
 from helper import (
     build_discord_auth_url,
@@ -26,8 +27,8 @@ callback_redirect_uri = urljoin(os.getenv('base_url'), '/discord/callback')
 
 @discord_bp.route('/discord/authorize')
 async def authorize():
-    # custom `state` url param to persist throughout the auth and callback
-    state = request.args.get('state')
+    state = uuid4().hex
+    session['csrf_token'] = state
 
     url = build_discord_auth_url(
         client_id=os.getenv('bot_client_id'),
@@ -40,9 +41,13 @@ async def authorize():
 @discord_bp.route('/discord/callback')
 async def callback():
     code = request.args.get("code")
+    state = request.args.get("state")
+
+    if state != session.get('csrf_token'):
+        return "CSRF token does not match!"
 
     # No code url parameter was provided
     if not code:
-        return "Invalid grant!"
+        return "Invalid grant code!"
 
     return await login_user(code, callback_redirect_uri)

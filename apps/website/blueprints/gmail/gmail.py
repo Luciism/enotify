@@ -73,14 +73,14 @@ async def callback():
 
     # Exchange code for the access and refresh token
     if request.args.get('code'):
-        # build user creds from grant query parameter
+        # build user creds from code query parameter
         try:
             user_creds: UserCreds = await oauth2.build_user_creds(
                 grant=request.args.get('code'),
                 client_creds=gmail.client_creds
             )
         except HTTPError:
-            return 'Invalid grant!'
+            return 'Invalid code!'
 
         # get user account information (email, pfp, etc)
         user_info = await gmail.get_user_info(user_creds)
@@ -114,7 +114,7 @@ async def callback():
         return user_creds
 
     # Should either receive a code or an error
-    return "Unable to obtain grant, please try again."
+    return "Unable to obtain code, please try again."
 
 
 @gmail_bp.route('/gmail/push', methods=['POST'])

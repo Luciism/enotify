@@ -20,16 +20,16 @@ cache_backend = SQLiteBackend(
 def build_discord_auth_url(
     client_id: int,
     redirect_uri: str,
+    state: str,
     scopes: list=['identify'],
-    response_type: str='code',
-    state: str | None=None
-):
+    response_type: str='code'
+) -> str:
     """
     Builds a discord oauth2 url using the provided information
     :param client_id: the client id of the bot to authenticate with
     :param redirect_uri: the redirect uri to go to once the user has authenticated
+    :param state: randomly generated csrf token to validate the request origin
     :param scopes: a list of discord scopes
-    :param state: any extra value that will be passed back with the redirect uri
     :param response_type: the response type for receiving the grant code
     """
     # join scopes into url encoded string
@@ -40,12 +40,9 @@ def build_discord_auth_url(
 
     url = (
         f'https://discord.com/api/oauth2/authorize?client_id={client_id}'
-        f'&redirect_uri={redirect_uri}&response_type={response_type}&scope={scopes}'
+        f'&redirect_uri={redirect_uri}&response_type={response_type}'
+        f'&scope={scopes}&state={state}'
     )
-
-    # add state param
-    if state:
-        url += f'&state={state}'
 
     return url
 
