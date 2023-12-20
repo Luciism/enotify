@@ -146,7 +146,7 @@ async def gmail_push():
         jwt.decode(
             jwt=token,
             key=signing_key.key,
-            algorithms=[unverified_header['alg']],
+            algorithms=['RS256'],
             audience=jwt_audience,
             options={"verify_exp": True, "strict_aud": True},
         )
@@ -157,7 +157,12 @@ async def gmail_push():
         logger.info('(`/gmail/push` denied) Expired signature for signed JWT header!')
         return {'success': False, 'reason': 'Expired JWT signature.'}
 
-    gmail_received_notify_user(await request.get_json())
+    try:
+        gmail_received_notify_user(await request.get_json())
+    except ConnectionRefusedError:
+        # bot is offline
+        logger.info('(`/gmail/push` failed) socket connection refused')
+        return {'success': False, 'reason': 'Internal server error'}, 500
 
     return {'success': True}
 
