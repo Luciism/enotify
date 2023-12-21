@@ -495,7 +495,7 @@ function buildEmailAccountElement(emailAccountData) {
               </p>
 
               <div class="email-account-alert-tooltip">
-                <p>The session for this account has expired, please reauthenticate this account by <a href="/gmail/authorize/dashboard">logging in again</a>.</p>
+                <p>The session for this account has expired, please reauthenticate this account by <a href="/gmail/authorize?next=/dashboard">logging in again</a>.</p>
               </div>
             </div>
 

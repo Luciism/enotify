@@ -40,14 +40,14 @@ async def authorize():
 
 @discord_bp.route('/discord/callback')
 async def callback():
-    code = request.args.get("code")
     state = request.args.get("state")
 
     if state != session.get('csrf_token'):
         return "CSRF token does not match!"
 
-    # No code url parameter was provided
+    code = request.args.get("code")
     if not code:
-        return "Invalid grant code!"
+        # No code url parameter was provided
+        return "Invalid code!"
 
     return await login_user(code, callback_redirect_uri)

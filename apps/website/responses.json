@@ -66,6 +66,10 @@
     "invalid_scopes": {
       "message": "Invalid or missing scopes.",
       "success": false, "color": "red"
+    },
+    "not_logged_in": {
+      "message": "You are not logged in.",
+      "success": false, "color": "red"
     }
   }
 }

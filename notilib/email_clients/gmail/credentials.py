@@ -24,12 +24,6 @@ client_creds = ClientCreds(
 )
 oauth2 = Oauth2Manager(client_creds=client_creds)
 
-auth_url = oauth2.authorization_url(
-    client_creds=client_creds,
-    access_type='offline',
-    prompt='consent'
-)
-
 
 @ensure_connection
 async def __find_user_credentials(

@@ -1,16 +1,17 @@
 import os
 import logging
-from urllib.parse import urljoin, urlencode
+from urllib.parse import urljoin, urlencode, unquote as urlunquote
+from uuid import uuid4
 
 import jwt
 from aiogoogle import HTTPError
 from aiogoogle.auth import UserCreds
-from aiogoogle.auth.managers import Oauth2Manager
 from quart import (
     Blueprint,
     make_response,
     redirect,
-    request
+    request,
+    session
 )
 
 from notilib import Database
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 logger.info('Blueprint registered.')
 
 jwt_client = jwt.PyJWKClient('https://www.googleapis.com/oauth2/v2/certs')
-oauth2 = Oauth2Manager(client_creds=gmail.client_creds)
+oauth2 = gmail.oauth2
 
 jwt_audience = urljoin(
     os.getenv('base_url'),
@@ -41,27 +42,28 @@ gmail_bp = Blueprint(
 
 @gmail_bp.route('/gmail/authorize')
 async def authorize():
-    return redirect(gmail.auth_url)
+    session['next_url'] = request.args.get('next')
 
+    state = uuid4().hex
+    session['csrf_token'] = state
 
-@gmail_bp.route('/gmail/authorize/<string:destination>')
-async def authorize_with_destination(destination: str=None):
-    resp = await make_response(redirect(gmail.auth_url))
-
-    # add url params
-    if request.args:
-        destination += f'?{urlencode(request.args)}'
-
-    resp.set_cookie('destination', destination)
-
-    return resp
-
+    auth_url = oauth2.authorization_url(
+        client_creds=gmail.client_creds,
+        state=state,
+        access_type='offline',
+        prompt='consent'
+    )
+    return redirect(auth_url)
 
 
 @gmail_bp.route('/gmail/callback/')
 async def callback():
     # make sure the user is logged in
     user = await authenticate_user()
+
+    state = request.args.get("state")
+    if state != session.get('csrf_token'):
+        return "CSRF token does not match!"
 
     # Handle errors
     if request.args.get('error'):
@@ -104,14 +106,13 @@ async def callback():
 
         await Database().cleanup()
 
-        dest_cookie = request.cookies.get('destination')
-        if dest_cookie is not None:
-            resp = await make_response(redirect(f'/{dest_cookie}'))
-            resp.delete_cookie('destination')
-            return resp
+        if (next_url := session.get('next_url')):
+            del session['next_url']
 
-        # TODO: change this
-        return user_creds
+            # force route to be on the same site
+            return redirect(f'/{urlunquote(next_url).removeprefix("/")}')
+
+        return redirect('/')
 
     # Should either receive a code or an error
     return "Unable to obtain code, please try again."
@@ -132,8 +133,6 @@ async def gmail_push():
         bearer_token = request.headers.get("Authorization")
         token = bearer_token.split(" ")[1]
 
-        # get unverified header in order to find the algorithm to use
-        unverified_header = jwt.get_unverified_header(token)
     except (AttributeError, IndexError, jwt.DecodeError):
         logger.info('(`/gmail/push` denied) Invalid authorization header.')
         return {'success': False, 'reason': 'Invalid authorization header.'}
@@ -165,10 +164,3 @@ async def gmail_push():
         return {'success': False, 'reason': 'Internal server error'}, 500
 
     return {'success': True}
-
-
-@gmail_bp.route('/gmail/creds')
-async def gmail_creds():
-    email_address = request.args.get('email')
-
-    return await gmail.load_user_credentials(email_address) or "no data"

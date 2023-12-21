@@ -8,7 +8,7 @@ from quart import session
 
 from notilib import create_account
 from .info import get_discord_avatar
-from ..exceptions import InvalidDiscordAccessTokenError
+from ..exceptions import InvalidDiscordAccessTokenError, UserNotLoggedInError
 from ..utils import response_msg, ResponseMsg
 
 
@@ -289,6 +289,8 @@ async def authenticate_user(
     """
     # fetch discord user using access token stored in user's session cookie
     discord_credentials: dict = session.get('discord_credentials')
+    if discord_credentials is None:
+        raise UserNotLoggedInError
 
     expires_at: int = discord_credentials.get('expires_at')
 
