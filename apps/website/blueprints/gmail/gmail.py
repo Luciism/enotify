@@ -1,6 +1,6 @@
 import os
 import logging
-from urllib.parse import urljoin, urlencode, unquote as urlunquote
+from urllib.parse import urljoin, unquote as urlunquote
 from uuid import uuid4
 
 import jwt
@@ -8,7 +8,6 @@ from aiogoogle import HTTPError
 from aiogoogle.auth import UserCreds
 from quart import (
     Blueprint,
-    make_response,
     redirect,
     request,
     session
@@ -16,7 +15,7 @@ from quart import (
 
 from notilib import Database
 from notilib.email_clients import gmail
-from helper import gmail_received_notify_user, authenticate_user
+from helper import gmail_received_notify_user, discord_auth_client
 
 
 logger = logging.getLogger(__name__)
@@ -59,7 +58,7 @@ async def authorize():
 @gmail_bp.route('/gmail/callback/')
 async def callback():
     # make sure the user is logged in
-    user = await authenticate_user()
+    user = await discord_auth_client.authenticate_user()
 
     state = request.args.get("state")
     if state != session.get('csrf_token'):

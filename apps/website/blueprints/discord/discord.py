@@ -1,14 +1,9 @@
 import logging
-import os
-from urllib.parse import urljoin
 from uuid import uuid4
 
 from quart import Blueprint, redirect, request, session
 
-from helper import (
-    build_discord_auth_url,
-    login_user,
-)
+from helper import discord_auth_client
 
 
 logger = logging.getLogger(__name__)
@@ -22,19 +17,13 @@ discord_bp = Blueprint(
     static_url_path='/static/'
 )
 
-callback_redirect_uri = urljoin(os.getenv('base_url'), '/discord/callback')
-
 
 @discord_bp.route('/discord/authorize')
 async def authorize():
     state = uuid4().hex
     session['csrf_token'] = state
 
-    url = build_discord_auth_url(
-        client_id=os.getenv('bot_client_id'),
-        redirect_uri=callback_redirect_uri,
-        state=state
-    )
+    url = discord_auth_client.build_discord_auth_url(state=state)
     return redirect(url)
 
 
@@ -50,4 +39,4 @@ async def callback():
         # No code url parameter was provided
         return "Invalid code!"
 
-    return await login_user(code, callback_redirect_uri)
+    return await discord_auth_client.login_user(code)

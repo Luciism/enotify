@@ -12,7 +12,7 @@ from notilib import (
     remove_email_address
 )
 from helper import (
-    authenticate_user,
+    discord_auth_client,
     response_msg,
     is_email_address_valid
 )
@@ -67,7 +67,7 @@ async def _build_email_accounts_data(user_id: int) -> list[dict]:
 
 @dashboard_bp.route('/dashboard')
 async def dashboard_route():
-    user = await authenticate_user()
+    user = await discord_auth_client.authenticate_user()
 
     data = {
         'user': {
@@ -82,7 +82,7 @@ async def dashboard_route():
 @dashboard_bp.route(
     '/dashboard/api/add-or-remove-filtered-sender', methods=['POST'])
 async def add_or_remove_filtered_sender():
-    user = await authenticate_user()
+    user = await discord_auth_client.authenticate_user()
 
     # get and validate request data
     request_data: dict = await request.get_json()
@@ -133,7 +133,7 @@ async def add_or_remove_filtered_sender():
 @dashboard_bp.route(
     '/dashboard/api/edit-filtered-sender', methods=['POST'])
 async def edit_filtered_sender():
-    user = await authenticate_user()
+    user = await discord_auth_client.authenticate_user()
 
     # get and validate request data
     request_data: dict = await request.get_json()
@@ -170,7 +170,7 @@ async def edit_filtered_sender():
 @dashboard_bp.route(
     '/dashboard/api/toggle-sender-whitelist', methods=['POST'])
 async def toggle_whitelisted_sender():
-    user = await authenticate_user()
+    user = await discord_auth_client.authenticate_user()
 
     # get and validate request data
     request_data: dict = await request.get_json()
@@ -193,7 +193,7 @@ async def toggle_whitelisted_sender():
 @dashboard_bp.route(
     '/dashboard/api/remove-email-account', methods=['POST'])
 async def remove_email_account():
-    user = await authenticate_user()
+    user = await discord_auth_client.authenticate_user()
 
     # get and validate request data
     request_data: dict = await request.get_json()
