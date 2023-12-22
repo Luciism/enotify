@@ -1,12 +1,20 @@
-**/.env
+# generated
 **/logs/
 **/.cache/
 **/.pytest_cache/
 **/__pycache__/
+
+# secrets
+secrets/
+**/.env
+
+# development testing
+**test.py
+apps/website/dev_endpoints.py
+
+# environment related
+.hintrc
+.venv
 .devtools/
 .vscode/
-**test.py
-secrets/
 desktop.ini
-.hintrc
-apps/website/dev_endpoints.py
