@@ -52,6 +52,20 @@ class ResponseMsg(TypedDict):
     success: bool
 
 
+class _ResponseMsgs:
+    def __init__(self) -> None:
+        self._data = None
+
+    @property
+    def data(self) -> dict[str, dict[str, dict]]:
+        if self._data is None:
+            with open(f'{APP_PATH}/responses.json', 'r') as df:
+                self._data = json.load(df)
+        return self._data
+
+__response_msgs = _ResponseMsgs()
+
+
 def response_msg(response: str, forced_color: str=None) -> ResponseMsg | dict:
     """
     Returns a certain response from the `responses.json` file
@@ -59,8 +73,7 @@ def response_msg(response: str, forced_color: str=None) -> ResponseMsg | dict:
     :param response: the key for the response data to return
     :param forced_color: a hex code to force the color to be set as
     """
-    with open(f'{APP_PATH}/responses.json', 'r') as df:
-        responses: dict[str, dict[str, dict]] = json.load(df)
+    responses = __response_msgs.data
 
     response_data = responses.get('responses', {}).get(response, {})
 
