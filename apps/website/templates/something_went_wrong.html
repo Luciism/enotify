@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {% include 'components/head.html' %}
+    <meta name="description" content="">
+
+    <title>Something went wrong</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/something_went_wrong.css') }}">
+
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ url_for('static', filename='assets/branding/logo.svg') }}"
+    />
+  </head>
+  <body>
+    {% include 'components/header.html' %}
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="text-wrapper">
+          <p class="title">{{ data.text.title }}</p>
+          <p class="description">{{ data.text.description }}</p>
+        </div>
+        <a href="/" class="padded-btn back-home-btn">
+          <iconify-icon icon="mingcute:arrow-left-line"></iconify-icon>
+          <span>Back Home</span>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

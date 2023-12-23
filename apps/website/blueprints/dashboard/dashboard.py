@@ -14,7 +14,8 @@ from notilib import (
 from helper import (
     discord_auth_client,
     response_msg,
-    is_email_address_valid
+    is_email_address_valid,
+    page_user_context_data
 )
 
 
@@ -61,7 +62,6 @@ async def _build_email_accounts_data(user_id: int) -> list[dict]:
         }
         email_accounts_data.append(email_account_data)
 
-    print(email_accounts_data)
     return email_accounts_data
 
 
@@ -71,7 +71,7 @@ async def dashboard_route():
 
     data = {
         'user': {
-            'avatar_url': user.avatar_url,
+            **page_user_context_data(user),
             'email_accounts': await _build_email_accounts_data(user.id)
         }
     }
@@ -160,7 +160,6 @@ async def edit_filtered_sender():
             await filters.remove_whitelisted_sender(sender_email_address_old)
             await filters.add_whitelisted_sender(sender_email_address_new)
         case 'blacklist':
-            print('blacklist')
             await filters.remove_blacklisted_sender(sender_email_address_old)
             await filters.add_blacklisted_sender(sender_email_address_new)
 

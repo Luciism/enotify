@@ -268,6 +268,14 @@ class DiscordOauthClient:
         return user
 
 
+    async def authenticate_user_login_optional(self) -> DiscordUser | None:
+        """Returns user data if the user is logged in otherwise returns `None`"""
+        try:
+            return await self.authenticate_user()
+        except (UserNotLoggedInError, InvalidDiscordAccessTokenError):
+            return None
+
+
     @staticmethod
     async def set_discord_user_creds(
         response: ClientResponse,

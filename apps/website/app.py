@@ -8,7 +8,8 @@ from notilib import Database, setup_logging, PROJECT_PATH
 from helper import (
     InvalidDiscordAccessTokenError,
     UserNotLoggedInError,
-    response_msg
+    response_msg,
+    default_page_context_data
 )
 
 from blueprints.gmail.gmail import gmail_bp
@@ -54,7 +55,7 @@ async def close_db_pool():
 # --------------------------- ERRORS -------------------------- #
 @app.errorhandler(404)
 async def not_found(error) -> str:
-    return await render_template("404.html")
+    return await render_template("404.html", data=await default_page_context_data())
 
 @app.errorhandler(InvalidDiscordAccessTokenError)
 async def invalid_discord_access_token_error_handler(error) -> dict:

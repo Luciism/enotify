@@ -95,11 +95,6 @@
 
 .navbar-login-button {
   display: none;
-  padding: 0.45rem 1.7rem;
-  background-color: var(--accent);
-  color: var(--text);
-  border-radius: 5px;
-  text-decoration: none;
 }
 
 /* user menu dropdown */
