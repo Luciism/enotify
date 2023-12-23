@@ -15,7 +15,7 @@ from quart import (
 
 from notilib import Database
 from notilib.email_clients import gmail
-from helper import gmail_received_notify_user, discord_auth_client
+from helper import gmail_received_notify_user, discord_auth_client, DiscordUser
 
 
 logger = logging.getLogger(__name__)
@@ -39,6 +39,33 @@ gmail_bp = Blueprint(
 )
 
 
+def user_creds_arent_intact(user_creds: UserCreds) -> bool:
+    return not (
+        isinstance(user_creds.get('access_token'), str) and
+        isinstance(user_creds.get('refresh_token'), str) and
+        isinstance(user_creds.get('id_token'), str) and
+        isinstance(user_creds.get('expires_in'), int)
+    )
+
+
+async def add_user_creds(
+    user: DiscordUser,
+    user_info: gmail.UserInfo,
+    user_creds: UserCreds
+) -> None:
+    pool = await Database().connect()
+
+    async with pool.acquire() as conn:
+        await gmail.GmailEmailAddress(
+            user.id, user_info.email).add_email_address(conn=conn)
+        await gmail.save_user_credentials(user_info.email, user_creds, conn=conn)
+        await gmail.set_latest_email_id(user_info.email, conn=conn)
+
+        await gmail.set_credentials_validity(user_info.email, valid=True, conn=conn)
+
+    await Database().cleanup()
+
+
 @gmail_bp.route('/gmail/authorize')
 async def authorize():
     session['next_url'] = request.args.get('next')
@@ -57,6 +84,8 @@ async def authorize():
 
 @gmail_bp.route('/gmail/callback/')
 async def callback():
+    print(request.method)
+
     # make sure the user is logged in
     user = await discord_auth_client.authenticate_user()
 
@@ -66,55 +95,45 @@ async def callback():
 
     # Handle errors
     if request.args.get('error'):
-        error = {
-            'error': request.args.get('error'),
-            'error_description': request.args.get('error_description')
-        }
-        return error
+        del (error_info := dict(request.args))['state']
+        return error_info  # requests args without state param
+
+    if not request.args.get('code'):
+        # Should either receive a code or an error
+        return "Unable to obtain code, please try again."
 
     # Exchange code for the access and refresh token
-    if request.args.get('code'):
+    try:
         # build user creds from code query parameter
-        try:
-            user_creds: UserCreds = await oauth2.build_user_creds(
-                grant=request.args.get('code'),
-                client_creds=gmail.client_creds
-            )
-        except HTTPError:
-            return 'Invalid code!'
+        user_creds: UserCreds = await oauth2.build_user_creds(
+            grant=request.args.get('code'),
+            client_creds=gmail.client_creds
+        )
+    except HTTPError:
+        return 'Invalid code!'
 
-        # get user account information (email, pfp, etc)
-        user_info = await gmail.get_user_info(user_creds)
+    if user_creds_arent_intact(user_creds):
+        return 'Invalid credentials!'
 
-        if user_info.error:
-            # handle error
-            return user_info.error
+    # get user account information (email, pfp, etc)
+    user_info = await gmail.get_user_info(user_creds)
 
-        pool = await Database().connect()
+    if user_info.error:
+        # handle error
+        return user_info.error
 
-        async with pool.acquire() as conn:
-            await gmail.GmailEmailAddress(
-                user.id, user_info.email).add_email_address(conn=conn)
-            await gmail.save_user_credentials(user_info.email, user_creds, conn=conn)
-            await gmail.set_latest_email_id(user_info.email, conn=conn)
+    await add_user_creds(user, user_info, user_creds)
 
-            await gmail.set_credentials_validity(user_info.email, valid=True, conn=conn)
+    # watch inbox for new emails
+    await gmail.watch_user_inbox(user_creds=user_creds)
 
-        # watch inbox for new emails
-        await gmail.watch_user_inbox(user_creds=user_creds)
+    if (next_url := session.get('next_url')):
+        del session['next_url']
 
-        await Database().cleanup()
+        # force route to be on the same site
+        return redirect(f'/{urlunquote(next_url).removeprefix("/")}')
 
-        if (next_url := session.get('next_url')):
-            del session['next_url']
-
-            # force route to be on the same site
-            return redirect(f'/{urlunquote(next_url).removeprefix("/")}')
-
-        return redirect('/')
-
-    # Should either receive a code or an error
-    return "Unable to obtain code, please try again."
+    return redirect('/')
 
 
 @gmail_bp.route('/gmail/push', methods=['POST'])

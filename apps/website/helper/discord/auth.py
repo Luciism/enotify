@@ -289,8 +289,8 @@ class DiscordOauthClient:
 
         # ensure response data is intact
         if not (
-            isinstance(creds.access_token, str),
-            isinstance(creds.refresh_token, str),
+            isinstance(creds.access_token, str) and
+            isinstance(creds.refresh_token, str) and
             isinstance(creds.expires_in, int)
         ):
             return response_msg('malformed_response_data')
