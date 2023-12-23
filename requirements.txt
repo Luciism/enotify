@@ -8,6 +8,7 @@ asyncpg==0.27.0
 colorlog==6.7.0
 discord.py==2.2.3
 quart==0.19.2
+pyjwt==2.8.0
 python-dotenv
 
 pytest==7.4.0

@@ -84,12 +84,10 @@ async def authorize():
 
 @gmail_bp.route('/gmail/callback/')
 async def callback():
-    print(request.method)
-
     # make sure the user is logged in
     user = await discord_auth_client.authenticate_user()
 
-    state = request.args.get("state")
+    state = request.args.get('state')
     if state != session.get('csrf_token'):
         return "CSRF token does not match!"
 
