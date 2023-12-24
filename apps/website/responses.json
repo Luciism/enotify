@@ -70,6 +70,26 @@
     "not_logged_in": {
       "message": "You are not logged in.",
       "success": false, "color": "red"
+    },
+    "csrf_token_mismatch": {
+      "message": "There was a problem processing your authentication request.",
+      "description": "Your request could not be completed due to a security issue. It appears the request did not originate from a valid source. Please try again or contact support if the issue persists.",
+      "success": false, "color": "red"
+    },
+    "code_grant_invalid": {
+      "message": "There was a problem processing your authentication request.",
+      "description": "We're sorry, but we couldn't log you in. Please try again or contact support if you keep having trouble.",
+      "success": false, "color": "red"
+    },
+    "invalid_credentials": {
+      "message": "There was a problem processing your authentication request.",
+      "description": "Oops! It seems like there was a hiccup with your login. If you made any changes to the login process, please revert them and try again. If you're still having trouble, our support team is here to help.",
+      "success": false, "color": "red"
+    },
+    "auth_error": {
+      "message": "There was a problem processing your authentication request.",
+      "description": "Oops! It seems like there's a problem on our end. Please try again. If the issue persists, don't hesitate to contact our support team. We're here to help!",
+      "success": false, "color": "red"
     }
   }
 }

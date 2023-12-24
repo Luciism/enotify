@@ -89,16 +89,19 @@ async def callback():
 
     state = request.args.get('state')
     if state != session.get('csrf_token'):
-        return "CSRF token does not match!"
+        return redirect('/error/csrf_token_mismatch')
 
-    # Handle errors
+    # On error, show user error message and log error data
     if request.args.get('error'):
-        del (error_info := dict(request.args))['state']
-        return error_info  # requests args without state param
+        logger.info('(`/gmail/callback` error) ' + str({
+            'error': request.args.get('error'),
+            'error_description': request.args.get('error_description')
+        }))
+        return redirect('/error/auth_error')
 
     if not request.args.get('code'):
         # Should either receive a code or an error
-        return "Unable to obtain code, please try again."
+        return redirect('/error/code_grant_invalid')
 
     # Exchange code for the access and refresh token
     try:
@@ -108,17 +111,17 @@ async def callback():
             client_creds=gmail.client_creds
         )
     except HTTPError:
-        return 'Invalid code!'
+        return redirect('/error/code_grant_invalid')
 
     if user_creds_arent_intact(user_creds):
-        return 'Invalid credentials!'
+        return redirect('/error/invalid_credentials')
 
     # get user account information (email, pfp, etc)
     user_info = await gmail.get_user_info(user_creds)
 
     if user_info.error:
-        # handle error
-        return user_info.error
+        logger.info(f'(`/gmail/callback` error) {user_info.error}')
+        return redirect('/error/auth_error')
 
     await add_user_creds(user, user_info, user_creds)
 
