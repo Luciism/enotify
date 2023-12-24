@@ -1,19 +1,19 @@
 .content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .error-code-text-description {
-    color: var(--accent);
-    font-weight: 500;
-    padding: 0;
-    text-transform: uppercase;
-    font-size: 80px;
+  color: var(--accent);
+  font-weight: 500;
+  padding: 0;
+  text-transform: uppercase;
+  font-size: 80px;
 }
 
 .error-code-image {
-    animation: levitate 6s ease-in-out infinite;
+  animation: levitate 6s ease-in-out infinite;
 }

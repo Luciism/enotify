@@ -11,7 +11,7 @@
     <title>Page Not Found</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('.static', filename='css/error_code.css') }}">
+    <link rel="stylesheet" href="{{ url_for('error_handling.static', filename='css/error_code.css') }}">
 
     <link
       rel="icon"
@@ -23,7 +23,7 @@
     {% include 'components/header.html' %}
     <div class="content-wrapper">
       <div class="content">
-        <img class="error-code-image" src="{{ url_for('.static', filename='assets/images/404.png') }}" alt="404">
+        <img class="error-code-image" src="{{ url_for('error_handling.static', filename='assets/images/404.png') }}" alt="404">
         <p class="error-code-text-description">Page Not Found</p>
       </div>
     </div>
