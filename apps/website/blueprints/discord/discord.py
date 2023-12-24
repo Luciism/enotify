@@ -19,7 +19,7 @@ discord_bp = Blueprint(
 
 
 @discord_bp.route('/discord/authorize')
-async def authorize():
+async def discord_authorize_route():
     if request.args.get('next'):
         session['next_url'] = request.args.get('next')
 
@@ -31,7 +31,7 @@ async def authorize():
 
 
 @discord_bp.route('/discord/callback')
-async def callback():
+async def discord_callback_route():
     state = request.args.get("state")
     if state != session.get('csrf_token'):
         return redirect('/error/csrf_token_mismatch')
@@ -49,3 +49,8 @@ async def callback():
 
     return next_or_fallback()  # redirect user to home or next page
 
+
+@discord_bp.route('/logout')
+async def logout_route():
+    del session['discord_credentials']  # delete discord credentials from session
+    return redirect('/')
