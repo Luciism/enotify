@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from quart import Blueprint, redirect, request, session
 
-from helper import discord_auth_client
+from helper import next_or_fallback, discord_auth_client
 
 
 logger = logging.getLogger(__name__)
@@ -20,6 +20,9 @@ discord_bp = Blueprint(
 
 @discord_bp.route('/discord/authorize')
 async def authorize():
+    if request.args.get('next'):
+        session['next_url'] = request.args.get('next')
+
     state = uuid4().hex
     session['csrf_token'] = state
 
@@ -30,13 +33,19 @@ async def authorize():
 @discord_bp.route('/discord/callback')
 async def callback():
     state = request.args.get("state")
-
     if state != session.get('csrf_token'):
-        return "CSRF token does not match!"
+        return redirect('/error/csrf_token_mismatch')
 
     code = request.args.get("code")
     if not code:
-        # No code url parameter was provided
-        return "Invalid code!"
+        # No code url query parameter was provided
+        return redirect('/error/code_grant_invalid')
 
-    return await discord_auth_client.login_user(code)
+    res = await discord_auth_client.login_user(code)
+
+    # something probably went wrong, returning error page
+    if res is not None:
+        return res
+
+    return next_or_fallback()  # redirect user to home or next page
+

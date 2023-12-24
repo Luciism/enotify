@@ -15,7 +15,12 @@ from quart import (
 
 from notilib import Database
 from notilib.email_clients import gmail
-from helper import gmail_received_notify_user, discord_auth_client, DiscordUser
+from helper import (
+    DiscordUser,
+    gmail_received_notify_user,
+    next_or_fallback,
+    discord_auth_client
+)
 
 
 logger = logging.getLogger(__name__)
@@ -68,7 +73,8 @@ async def add_user_creds(
 
 @gmail_bp.route('/gmail/authorize')
 async def authorize():
-    session['next_url'] = request.args.get('next')
+    if request.args.get('next'):
+        session['next_url'] = request.args.get('next')
 
     state = uuid4().hex
     session['csrf_token'] = state
@@ -128,13 +134,7 @@ async def callback():
     # watch inbox for new emails
     await gmail.watch_user_inbox(user_creds=user_creds)
 
-    if (next_url := session.get('next_url')):
-        del session['next_url']
-
-        # force route to be on the same site
-        return redirect(f'/{urlunquote(next_url).removeprefix("/")}')
-
-    return redirect('/')
+    return next_or_fallback()  # redirect user to home or next page
 
 
 @gmail_bp.route('/gmail/push', methods=['POST'])

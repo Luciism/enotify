@@ -3,12 +3,25 @@ import json
 import socket
 from base64 import b64decode
 from typing import Any, TypedDict
+from urllib.parse import unquote as urlunquote
 
-from email_validator import validate_email, EmailSyntaxError, EmailNotValidError
-from quart import current_app, request
+
+from email_validator import (
+    EmailSyntaxError,
+    EmailNotValidError,
+    validate_email
+)
+from quart import (
+    Response as QuartResponse,
+    redirect,
+    current_app,
+    request,
+    session
+)
 from quart.sessions import SecureCookieSessionInterface
 
-from notilib import config
+from .discord.auth import DiscordUser, discord_auth_client
+from notilib import config, MISSING
 
 
 APP_PATH = os.path.abspath(f'{__file__}/../..')
@@ -103,3 +116,46 @@ def is_email_address_valid(email_address: str) -> bool:
         return True
     except (EmailNotValidError, EmailSyntaxError):
         return False
+
+
+def next_or_fallback(fallback: str='/') -> QuartResponse:
+    """
+    Goes to the `next_url` page location specified in the session cookie if
+    it exists, otherwise the specified fallback route
+    """
+    if (next_url := session.get('next_url')):
+        del session['next_url']
+
+        # force route to be on the same site
+        return redirect(f'/{urlunquote(next_url).removeprefix("/")}')
+
+    return redirect(fallback)
+
+
+
+def page_user_context_data(user: DiscordUser | None) -> dict | None:
+    """
+    Returns the relevant data for a user that should be served alongside
+    any webpage
+    :param user: the discord user data to return the filtered data of
+    """
+    if user is None:
+        return None
+
+    return {
+        'avatar_url': user.avatar_url
+    }
+
+
+async def default_page_context_data(user: DiscordUser | None=MISSING) -> dict:
+    """
+    Returns the default context data for any page
+    :param user: prefetched discord user object to use the data of
+    """
+    if user is MISSING:
+        user = await discord_auth_client.authenticate_user_login_optional()
+
+    return {
+        'user': page_user_context_data(user),
+        'next_url': request.path
+    }

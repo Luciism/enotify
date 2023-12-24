@@ -25,7 +25,6 @@ error_handling_bp = Blueprint(
 
 @error_handling_bp.route('/error/<string:error>')
 async def error_msg_route(error: str):
-    print(url_for('.static', filename='css/error_code.css'))
     res_msg = response_msg(error)
 
     default_page_data = await default_page_context_data()

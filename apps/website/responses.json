@@ -51,7 +51,7 @@
       "message": "Invalid email address format!",
       "success": false, "color": "red"
     },
-    "discord_oauth_error": {
+    "discord_oauth_error_old": {
       "message": "An error occured while trying to authenticate with discord.",
       "success": false, "color": "red"
     },
@@ -78,12 +78,12 @@
     },
     "code_grant_invalid": {
       "message": "There was a problem processing your authentication request.",
-      "description": "We're sorry, but we couldn't log you in. Please try again or contact support if you keep having trouble.",
+      "description": "We're sorry, but we couldn't complete your request. Please try again or contact support if you keep having trouble.",
       "success": false, "color": "red"
     },
     "invalid_credentials": {
       "message": "There was a problem processing your authentication request.",
-      "description": "Oops! It seems like there was a hiccup with your login. If you made any changes to the login process, please revert them and try again. If you're still having trouble, our support team is here to help.",
+      "description": "Oops! It seems like there was a hiccup with your request. If you made any changes to the authentication process, please revert them and try again. If you're still having trouble, our support team is here to help.",
       "success": false, "color": "red"
     },
     "auth_error": {

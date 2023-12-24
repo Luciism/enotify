@@ -4,12 +4,11 @@ from datetime import datetime
 
 from aiohttp import ClientSession, ClientResponse
 from aiohttp_client_cache import CachedSession, SQLiteBackend
-from quart import session
+from quart import Response as QuartResponse, redirect, session
 
 from notilib import create_account
 from .info import get_discord_avatar
 from ..exceptions import InvalidDiscordAccessTokenError, UserNotLoggedInError
-from ..utils import response_msg, ResponseMsg
 
 
 # main requests cache db
@@ -185,7 +184,7 @@ class DiscordOauthClient:
         self,
         code: str,
         required_scopes: list[str]=['identify']
-    ) -> ResponseMsg:
+    ) -> QuartResponse:
         """
         TODO: setup proper responses with pages\n
         Logs a user in to the website using discord oauth
@@ -280,7 +279,7 @@ class DiscordOauthClient:
     async def set_discord_user_creds(
         response: ClientResponse,
         required_scopes: list[str]=['identify']
-    ) -> ResponseMsg:
+    ) -> QuartResponse | None:
         """
         Sets the discord credentials in the session cookie if everything
         is valid
@@ -290,7 +289,7 @@ class DiscordOauthClient:
             in order for the login to succeed
         """
         if response.status != 200:
-            return response_msg('discord_oauth_error')
+            return redirect('/errors/auth_error')
 
         response_data: dict = await response.json()
         creds = DiscordUserCreds(response_data)
@@ -301,17 +300,17 @@ class DiscordOauthClient:
             isinstance(creds.refresh_token, str) and
             isinstance(creds.expires_in, int)
         ):
-            return response_msg('malformed_response_data')
+            return redirect('/errors/invalid_credentials')
 
         # ensure required scopes are met
         for scope in required_scopes:
             if not scope in creds.scopes:
-                return response_msg('invalid_scopes')
+                return redirect('/errors/invalid_credentials')
 
         # store credentials in session cookie
         session['discord_credentials'] = creds.__dict__
 
-        return response_msg('discord_oauth_login_success')
+        return None
 
 
     @staticmethod
