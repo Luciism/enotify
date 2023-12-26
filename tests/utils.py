@@ -79,6 +79,6 @@ class MockData:
     discord_id_3: Literal[363502852571134156] = 363502852571134156
 
     webmail_service: Literal['gmail'] = 'gmail'
-    webmail_service_4: Literal['yahoo'] = 'yahoo'
-    webmail_service_2: Literal['outlook'] = 'outlook'
-    webmail_service_3: Literal['hotmail'] = 'hotmail'
+    webmail_service_2: Literal['yahoo'] = 'yahoo'
+    webmail_service_3: Literal['outlook'] = 'outlook'
+    webmail_service_4: Literal['hotmail'] = 'hotmail'
