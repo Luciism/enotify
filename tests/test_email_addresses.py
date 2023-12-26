@@ -1,21 +1,9 @@
 import pytest
 
-from .utils import MockData, execute_in_transaction
+from .utils import MockData, execute_in_transaction, _add_email_address
 
 from notilib import email_addresses
 
-
-
-async def _add_email_address(
-    email_address: str,
-    webmail_service: str=MockData.webmail_service,
-    discord_id: int=MockData.discord_id
-) -> None:
-    await email_addresses.add_email_address(
-        discord_id=discord_id,
-        email_address=email_address,
-        webmail_service=webmail_service
-    )
 
 async def _remove_email_address(email_address: str):
     await email_addresses.remove_email_address(

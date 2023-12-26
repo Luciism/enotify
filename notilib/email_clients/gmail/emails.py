@@ -374,7 +374,7 @@ async def check_filters(
             return False
 
     # sender is blacklist
-    if sender in await gmail_address.filters.blacklisted_senders:
+    if sender.lower() in await gmail_address.filters.blacklisted_senders:
         return False
 
     # all checks passed
