@@ -1,12 +1,13 @@
 import logging
 
-from quart import Blueprint, render_template, url_for
+from quart import Blueprint, render_template, redirect
 
 from helper import (
     InvalidDiscordAccessTokenError,
     UserNotLoggedInError,
     response_msg,
-    default_page_context_data
+    default_page_context_data,
+    request
 )
 
 
@@ -50,7 +51,7 @@ async def invalid_discord_access_token_error_handler(error) -> dict:
 
 @error_handling_bp.app_errorhandler(UserNotLoggedInError)
 async def user_not_logged_in_error_handler(error) -> dict:
-    return response_msg('not_logged_in')
+    return redirect(f'/login?next={request.path}')
 
 
 # ------------------------ ERROR CODES ------------------------ #

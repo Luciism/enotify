@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {% include 'components/head.html' %}
+    <meta name="description" content="">
+
+    <title>Login</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/login.css') }}">
+
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ url_for('static', filename='assets/branding/logo.svg') }}"
+    />
+  </head>
+  <body>
+    {% include 'components/header.html' %}
+
+    <div class="content-wrapper">
+      <div class="login-panel">
+        <h2>Login To Proceed</h2>
+        <a id="login-btn" href="/discord/authorize" class="login-btn padded-btn">
+          <iconify-icon  class="icon" icon="ic:baseline-discord"></iconify-icon>
+          <span>Login with Discord</span>
+        </a>
+
+        <script defer>
+          const loginBtn = document.getElementById('login-btn');
+
+          const urlParams = new URLSearchParams(window.location.search);
+          const nextParam = urlParams.get('next');
+
+          if (nextParam !== null) {
+            loginBtn.href = `/discord/authorize?next=${nextParam}`
+          }
+        </script>
+
+      </div>
+    </div>
+
+  </body>
+</html>
