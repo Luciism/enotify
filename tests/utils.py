@@ -16,6 +16,7 @@ db.database = 'enotify_test'
 
 
 def execute_in_transaction(coro):
+    """DEPRECATED, DO NOT USE"""
     @wraps(coro)
     async def wrapper(*args, **kwargs):
         try:
@@ -87,10 +88,12 @@ class MockData:
 async def _add_email_address(
     email_address: str,
     webmail_service: str=MockData.webmail_service,
-    discord_id: int=MockData.discord_id
+    discord_id: int=MockData.discord_id,
+    conn: Connection=None
 ) -> None:
     await email_addresses.add_email_address(
         discord_id=discord_id,
         email_address=email_address,
-        webmail_service=webmail_service
+        webmail_service=webmail_service,
+        conn=conn
     )

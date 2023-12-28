@@ -122,7 +122,7 @@ async def get_account(
             return None
 
         # create account and select account data
-        await create_account(discord_id)
+        await create_account(discord_id, conn=conn)
         account_data = await __select_account_data(discord_id, conn)
 
     # return account data tuple as a named tuple
