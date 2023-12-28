@@ -11,7 +11,9 @@ CREATE TABLE IF NOT EXISTS gmail_credentials (
   email_address BYTEA NOT NULL,  -- encrypted email address
   credentials BYTEA,  -- encrypted oauth2 user credentials
   valid BOOLEAN DEFAULT TRUE,
-  latest_email_id TEXT  -- in order to not resend notification (https://issuetracker.google.com/issues/36759803)
+
+  -- in order to not resend notification (https://issuetracker.google.com/issues/36759803)
+  previous_email_ids TEXT[]
 );
 
 CREATE TABLE IF NOT EXISTS email_notification_filters (

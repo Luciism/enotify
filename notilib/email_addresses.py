@@ -97,7 +97,8 @@ async def add_email_address(
         return
 
     await conn.execute(
-        'INSERT INTO email_notification_filters (discord_id, email_address, webmail_service) '
+        'INSERT INTO email_notification_filters '
+        '(discord_id, email_address, webmail_service) '
         "VALUES ($1, pgp_sym_encrypt($2, $4), $3)",
         discord_id, email_address, webmail_service, os.getenv('database_encryption_key')
     )

@@ -56,7 +56,7 @@ def build_batch_request_body(
 
 
             {req["data"]}
-        """)  # remove any leading whitespace from indentation
+        """)  # remove any leading whitespace caused by indentation
 
     # boundary closing
     body += f'--{boundary}--'

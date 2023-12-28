@@ -212,90 +212,141 @@ async def retrieve_emails(
 
 
 @ensure_connection
-async def get_latest_email_id(
+async def get_previous_email_ids(
     email_address: str,
     conn: Connection=None
-) -> str | None:
+) -> list[str] | None:
     """
-    Gets the id of the latest email fetched for the specified email address.
+    Gets the ids of the existing emails in the inbox of the
+    specified email address.
     :param email_address: the email address to get the latest email id of
     :param conn: an open database connection to execute on, if left as `None`,\
         one will be acquired automatically (must be passed as a keyword argument)
     """
-    latest_email_id = await conn.fetchval(
-        'SELECT latest_email_id FROM gmail_credentials '
+    previous_email_ids = await conn.fetchval(
+        'SELECT previous_email_ids FROM gmail_credentials '
         'WHERE pgp_sym_decrypt(email_address, $2) = $1',
         email_address, os.getenv('database_encryption_key')
     )
-    return latest_email_id
+    return previous_email_ids
 
 
-@ensure_connection
-async def set_latest_email_id(
+async def __handle_retrieve_previous_email_ids(
     email_address: str,
-    latest_email_id: str=None,
-    conn: Connection=None
-) -> None:
-    """
-    Sets the `latest_email_id` value for an email address, if `latest_email_id`
-    is left as `None`, the most id of the most recent email in the user's inbox
-    inbox will be used. (Provided that the user has valid credentials).
-    :param email_address: the email address to set the latest email id for
-    :param latest_email_id: the actual latest email id value to set
-    :param conn: an open database connection to execute on, if left as `None`,\
-        one will be acquired automatically (must be passed as a keyword argument)
-    """
-    # obtain latest email id from users inbox if it is None
-    if latest_email_id is None:
-        user_creds = await load_user_credentials(email_address, conn=conn)
-        if user_creds is None:
+    count: int | None,
+    conn: Connection
+) -> list[str]:
+    user_creds = await load_user_credentials(email_address, conn=conn)
+    if user_creds is None:
+        raise NotImplementedError(
+            'Invalid user credentials, either pass `previous_email_ids` '
+            'or ensure that there are valid user creds bound to that email address!')
+
+    async with Aiogoogle(
+        user_creds=user_creds,
+        client_creds=client_creds
+    ) as google:
+        # fetch as many email ids as possible
+        previous_email_ids = await __retrieve_email_ids(count=count, google=google)
+
+        if not previous_email_ids:
             raise NotImplementedError(
-                'Invalid user credentials, either pass `latest_email_id` '
-                'or ensure that there are valid user creds bound to that email address!')
+                'Failed to fetch the latest email id from the users inbox!')
 
-        async with Aiogoogle(
-            user_creds=user_creds,
-            client_creds=client_creds
-        ) as google:
-            latest_email_ids = await __retrieve_email_ids(count=1, google=google)
+    return previous_email_ids
 
-            if not latest_email_ids:
-                raise NotImplementedError(
-                    'Failed to fetch the latest email id from the users inbox!')
-            latest_email_id = latest_email_ids[0]
 
-    # check if row exists in database
-    existing = await conn.fetchval(
+async def __email_address_exists(email_address: str, conn: Connection):
+    return await conn.fetchval(
         'SELECT email_address FROM gmail_credentials '
         'WHERE pgp_sym_decrypt(email_address, $2) = $1',
         email_address, os.getenv('database_encryption_key')
     )
 
+
+@ensure_connection
+async def set_previous_email_ids(
+    email_address: str,
+    previous_email_ids: str=None,
+    conn: Connection=None
+) -> None:
+    """
+    Sets the `previous_email_ids` database column for an email address.
+    If `previous_email_ids` is left as `None`, it will fetch as many of
+    the most previous email ids from the user's inbox as possible.
+
+    :param email_address: the email address to set the latest email id for
+    :param previous_email_ids: the previous email ids to set for the user
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically (must be passed as a keyword argument)
+    """
+    # obtain latest email id from users inbox if it is None
+    if previous_email_ids is None:
+        previous_email_ids = await __handle_retrieve_previous_email_ids(
+            email_address=email_address, count=None, conn=conn)
+
+
     # should typically always exist if this function is called, but shit happens
-    if existing is None:
+    if not __email_address_exists(email_address, conn):
         await conn.execute(
-            'INSERT INTO gmail_credentials (email_address, latest_email_id, valid) '
+            'INSERT INTO gmail_credentials (email_address, previous_email_ids, valid) '
             'VALUES (pgp_sym_encrypt($1, $3), $2, false)',
-            email_address, latest_email_id, os.getenv('database_encryption_key')
+            email_address, previous_email_ids, os.getenv('database_encryption_key')
         )  # insert new row and set `valid` to false because there are no credentials
         return
 
     await conn.execute(
-        'UPDATE gmail_credentials SET latest_email_id = $1 '
+        'UPDATE gmail_credentials SET previous_email_ids = $1 '
         'WHERE pgp_sym_decrypt(email_address, $2) = $3',
-        latest_email_id, os.getenv('database_encryption_key'), email_address
+        previous_email_ids, os.getenv('database_encryption_key'), email_address
     )
 
 
 @ensure_connection
-async def __check_latest_email_id(
+async def add_previous_email_id(
+    email_address: str,
+    previous_email_id: str=None,
+    conn: Connection=None
+) -> None:
+    """
+    Adds a value to the list of previous email IDs stored in the database for
+    a certain user. If `previous_email_id` is `None`, the id of the latest
+    email in a user's inbox will be used.
+
+    :param email_address: the email address to set the latest email id for
+    :param previous_email_id: the email id to add to the existing list of email ids
+    :param conn: an open database connection to execute on, if left as `None`,\
+        one will be acquired automatically (must be passed as a keyword argument)
+    """
+    # obtain latest email id from users inbox if it is None
+    if previous_email_id is None:
+        previous_email_id = await __handle_retrieve_previous_email_ids(
+            email_address=email_address, count=1, conn=conn)
+
+    if not __email_address_exists(email_address, conn):
+        await conn.execute(
+            'INSERT INTO gmail_credentials (email_address, previous_email_ids, valid) '
+            'VALUES (pgp_sym_encrypt($1, $3), $2, false)',
+            email_address, [previous_email_id], os.getenv('database_encryption_key')
+        )  # insert new row and set `valid` to false because there are no credentials
+        return
+
+    await conn.execute(
+        'UPDATE gmail_credentials SET previous_email_ids = previous_email_ids || $1 '
+        'WHERE pgp_sym_decrypt(email_address, $2) = $3',
+        [previous_email_id], os.getenv('database_encryption_key'), email_address
+    )
+
+
+@ensure_connection
+async def __check_previous_email_id(
     email_address: str,
     email_id: str,
     conn: Connection=None
 ) -> bool:
-    latest_email_id = await get_latest_email_id(email_address, conn=conn)
+    previous_email_ids = await get_previous_email_ids(email_address, conn=conn)
 
-    if latest_email_id == email_id:
+    if email_id in previous_email_ids:
         return True
     return False
 
@@ -331,20 +382,20 @@ async def retrieve_new_email(email_address: str) -> Email | None:
             email_id = email_id[0]  # `__retrieve_email_ids` returns a list of email ids
 
             # whether the fetched email id matches the locally stored "latest email id"
-            email_id_matches = await __check_latest_email_id(
+            email_is_old = await __check_previous_email_id(
                 email_address, email_id, conn=conn)
 
-            if email_id_matches:  # email has already been retrieved
+            if email_is_old:  # email has already been retrieved
                 logger.debug('Email has already been retrieved.')
                 return None
 
             # fetch actual email
             email = await __retrieve_emails(google, email_ids=[email_id])
 
-            await set_latest_email_id(email_address, email_id, conn=conn)
+            await add_previous_email_id(email_address, email_id, conn=conn)
 
     if email:
-        return email[0]  # email is a list of emails
+        return email[0]  # email is a 1 item list of emails
     return None
 
 

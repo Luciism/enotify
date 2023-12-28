@@ -64,7 +64,7 @@ async def add_user_creds(
         await gmail.GmailEmailAddress(
             user.id, user_info.email).add_email_address(conn=conn)
         await gmail.save_user_credentials(user_info.email, user_creds, conn=conn)
-        await gmail.set_latest_email_id(user_info.email, conn=conn)
+        await gmail.set_previous_email_ids(user_info.email, conn=conn)
 
         await gmail.set_credentials_validity(user_info.email, valid=True, conn=conn)
 
