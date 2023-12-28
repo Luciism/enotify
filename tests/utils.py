@@ -15,26 +15,6 @@ db = Database()
 db.database = 'enotify_test'
 
 
-def execute_in_transaction(coro):
-    """DEPRECATED, DO NOT USE"""
-    @wraps(coro)
-    async def wrapper(*args, **kwargs):
-        try:
-            pool = await db.connect()
-            async with pool.acquire() as conn:
-                conn: Connection
-                async with conn.transaction():
-                    # execute coroutine in transaction
-                    result = await coro(*args, **kwargs)
-
-                    # rollback the transaction by raising an error
-                    raise RollbackTransaction
-        except RollbackTransaction:
-            return result
-
-    return wrapper
-
-
 class _EmailAddress:
     all = [
         'Prudence.Stroman60@gmail.com',
@@ -85,7 +65,7 @@ class MockData:
     webmail_service_4: Literal['hotmail'] = 'hotmail'
 
 
-async def _add_email_address(
+async def add_mock_email_address(
     email_address: str,
     webmail_service: str=MockData.webmail_service,
     discord_id: int=MockData.discord_id,

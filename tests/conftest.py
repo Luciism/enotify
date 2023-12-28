@@ -1,5 +1,4 @@
 import asyncio
-import logging
 
 import pytest
 import pytest_asyncio
@@ -8,8 +7,6 @@ from asyncpg import Connection
 from .utils import db, RollbackTransaction
 from notilib import PROJECT_PATH
 
-
-pytest_plugins = ('pytest_asyncio',)
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -23,10 +20,6 @@ def event_loop():
 
 @pytest_asyncio.fixture
 async def conn():
-    # pool = await db.connect()
-    # async with pool.acquire() as conn:
-    #     yield conn
-
     try:
         pool = await db.connect()
         async with pool.acquire() as conn:

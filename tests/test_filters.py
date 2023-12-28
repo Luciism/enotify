@@ -1,6 +1,6 @@
 import pytest
 
-from .utils import MockData, _add_email_address
+from .utils import MockData, add_mock_email_address
 from notilib import EmailNotificationFilters
 
 
@@ -23,7 +23,7 @@ def filters(request: pytest.FixtureRequest):
 
 @pytest.mark.asyncio
 async def test_add_whitelisted_sender(conn, filters: EmailNotificationFilters):
-    await _add_email_address(filters.email_address, conn=conn)
+    await add_mock_email_address(filters.email_address, conn=conn)
 
     await filters.add_whitelisted_sender(MockData.email_address[1], conn=conn)
     assert MockData.email_address[1].lower() in await filters.whitelisted_senders
@@ -31,7 +31,7 @@ async def test_add_whitelisted_sender(conn, filters: EmailNotificationFilters):
 
 @pytest.mark.asyncio
 async def test_remove_whitelisted_sender(conn, filters: EmailNotificationFilters):
-    await _add_email_address(filters.email_address, conn=conn)
+    await add_mock_email_address(filters.email_address, conn=conn)
 
     await filters.add_whitelisted_sender(MockData.email_address[1], conn=conn)
     await filters.remove_whitelisted_sender(MockData.email_address[1], conn=conn)
@@ -42,7 +42,7 @@ async def test_remove_whitelisted_sender(conn, filters: EmailNotificationFilters
 
 @pytest.mark.asyncio
 async def test_add_blacklisted_sender(conn, filters: EmailNotificationFilters):
-    await _add_email_address(filters.email_address, conn=conn)
+    await add_mock_email_address(filters.email_address, conn=conn)
 
     await filters.add_blacklisted_sender(MockData.email_address[1], conn=conn)
     assert MockData.email_address[1].lower() in await filters.blacklisted_senders
@@ -50,7 +50,7 @@ async def test_add_blacklisted_sender(conn, filters: EmailNotificationFilters):
 
 @pytest.mark.asyncio
 async def test_remove_blacklisted_sender(conn, filters: EmailNotificationFilters):
-    await _add_email_address(filters.email_address, conn=conn)
+    await add_mock_email_address(filters.email_address, conn=conn)
 
     await filters.add_blacklisted_sender(MockData.email_address[1], conn=conn)
     await filters.remove_blacklisted_sender(MockData.email_address[1], conn=conn)
@@ -61,7 +61,7 @@ async def test_remove_blacklisted_sender(conn, filters: EmailNotificationFilters
 
 @pytest.mark.asyncio
 async def test_set_sender_whitelist_enabled(conn, filters: EmailNotificationFilters):
-    await _add_email_address(filters.email_address, conn=conn)
+    await add_mock_email_address(filters.email_address, conn=conn)
 
     await filters.set_sender_whitelist_enabled(enabled=True, conn=conn)
     assert await filters.sender_whitelist_enabled == True

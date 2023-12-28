@@ -1,6 +1,6 @@
 import pytest
 
-from .utils import MockData, _add_email_address
+from .utils import MockData, add_mock_email_address
 from notilib import email_addresses
 
 
@@ -14,7 +14,7 @@ async def _remove_email_address(email_address: str, conn):
 
 @pytest.mark.asyncio
 async def test_add_email_address(conn):
-    await _add_email_address(MockData.email_address(), conn=conn)
+    await add_mock_email_address(MockData.email_address(), conn=conn)
 
     assert MockData.email_address() in await email_addresses.get_email_addresses(
         discord_id=MockData.discord_id,
@@ -25,7 +25,7 @@ async def test_add_email_address(conn):
 
 @pytest.mark.asyncio
 async def test_remove_email_address(conn):
-    await _add_email_address(MockData.email_address(), conn=conn)
+    await add_mock_email_address(MockData.email_address(), conn=conn)
     await _remove_email_address(MockData.email_address(), conn=conn)
 
     # make sure email address was removed properly
@@ -40,8 +40,8 @@ async def test_remove_email_address(conn):
 async def test_get_all_email_addresses(conn):
     # add 2 different email addresses
     # TODO: use 2 different webmail services when capacity is added
-    await _add_email_address(MockData.email_address[0], conn=conn)
-    await _add_email_address(MockData.email_address[1], conn=conn)
+    await add_mock_email_address(MockData.email_address[0], conn=conn)
+    await add_mock_email_address(MockData.email_address[1], conn=conn)
 
     # get both email addresses by discord id
     all_email_addresses_data = await email_addresses.get_all_email_addresses(
@@ -61,13 +61,13 @@ async def test_get_all_email_addresses(conn):
 @pytest.mark.asyncio
 async def test_email_address_to_discord_ids(conn):
     # add same email address under 2 different discord ids
-    await _add_email_address(
+    await add_mock_email_address(
         MockData.email_address[0],
         webmail_service=MockData.webmail_service,
         discord_id=MockData.discord_id,
         conn=conn
     )
-    await _add_email_address(
+    await add_mock_email_address(
         MockData.email_address[0],
         webmail_service=MockData.webmail_service,
         discord_id=MockData.discord_id_2,
