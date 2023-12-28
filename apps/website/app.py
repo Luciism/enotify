@@ -11,6 +11,7 @@ from blueprints.discord.discord import discord_bp
 from blueprints.dashboard.dashboard import dashboard_bp
 from blueprints.error_handling.error_handling import error_handling_bp
 from blueprints.login.login import login_bp
+from blueprints.redirects.redirects import redirects_bp
 
 
 # -------------------------- LOGGING -------------------------- #
@@ -28,6 +29,7 @@ app.register_blueprint(discord_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(error_handling_bp)
 app.register_blueprint(login_bp)
+app.register_blueprint(redirects_bp)
 
 
 try:
