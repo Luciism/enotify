@@ -24,11 +24,13 @@
 
     <div class="content-wrapper">
       <div class="login-panel">
-        <h2>Login To Proceed</h2>
-        <a id="login-btn" href="/discord/authorize" class="login-btn padded-btn">
-          <iconify-icon  class="icon" icon="ic:baseline-discord"></iconify-icon>
-          <span>Login with Discord</span>
-        </a>
+        <div class="logging-panel-content-wrapper">
+          <h2>Login To Proceed</h2>
+          <a id="login-btn" href="/discord/authorize" class="login-btn padded-btn">
+            <iconify-icon  class="icon" icon="ic:baseline-discord"></iconify-icon>
+            <span>Login with Discord</span>
+          </a>
+        </div>
 
         <script defer>
           const loginBtn = document.getElementById('login-btn');

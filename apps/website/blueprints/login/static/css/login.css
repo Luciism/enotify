@@ -15,6 +15,9 @@
     box-shadow: var(--elevation-box-shadow);
 }
 
+.login-panel .login-panel-content-wrapper {
+    width: max-content;
+}
 
 .login-panel h2 {
     color: var(--text);
@@ -44,4 +47,24 @@
 .login-panel .login-btn span {
     font-size: 16px;
     margin-left: 6px;
+}
+
+
+@media (width < 600px) {
+    .login-panel {
+        padding: 75px;
+    }
+}
+
+@media (width < 500px) {
+    .login-panel {
+        padding: 75px 0;
+        width: 80%;
+    }
+}
+
+@media (width < 400px) {
+    .login-panel {
+        width: 95%;
+    }
 }
