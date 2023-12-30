@@ -12,8 +12,19 @@
   padding: 0;
   text-transform: uppercase;
   font-size: 80px;
+  line-height: 85px;
+  text-align: center;
 }
 
 .error-code-image {
   animation: levitate 6s ease-in-out infinite;
+  max-width: 80%;
+}
+
+
+@media (width < 600px) {
+  .error-code-text-description {
+    font-size: 65px;
+    line-height: 70px;
+  }
 }
