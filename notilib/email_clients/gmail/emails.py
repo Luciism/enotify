@@ -395,7 +395,13 @@ async def retrieve_new_email(email_address: str) -> Email | None:
             await add_previous_email_id(email_address, email_id, conn=conn)
 
     if email:
-        return email[0]  # email is a 1 item list of emails
+        email = email[0]  # email is a 1 item list of emails
+
+        # push route is notified when a draft is saved -_-
+        if 'DRAFT' in email.label_ids:
+            return None
+
+        return email
     return None
 
 
