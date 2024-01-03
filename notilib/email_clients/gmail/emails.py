@@ -397,8 +397,8 @@ async def retrieve_new_email(email_address: str) -> Email | None:
     if email:
         email = email[0]  # email is a 1 item list of emails
 
-        # push route is notified when a draft is saved -_-
-        if 'DRAFT' in email.label_ids:
+        # return `None` if email is a draft or an outgoing email
+        if {'DRAFT', 'SENT'} & set(email.label_ids):
             return None
 
         return email
