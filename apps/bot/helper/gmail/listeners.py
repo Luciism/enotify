@@ -16,7 +16,7 @@ def start_gmail_received_listener(client: discord.Client, queue: asyncio.Queue):
     received_listener_running = True
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
-        server.bind(('127.0.0.1', config('global.gmail.receive_socket_port')))
+        server.bind(('0.0.0.0', config('global.gmail.receive_socket_port')))
         server.listen()
 
         while True:

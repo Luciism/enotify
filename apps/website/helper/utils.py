@@ -55,7 +55,7 @@ def gmail_received_notify_user(res_data: dict) -> None:
 
     if email_address is not None:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-            client.connect(('127.0.0.1', config('global.gmail.receive_socket_port')))
+            client.connect(('bot', config('global.gmail.receive_socket_port')))
             client.send(email_address.encode())
 
 

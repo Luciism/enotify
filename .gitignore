@@ -18,3 +18,4 @@ apps/website/dev_endpoints.py
 .devtools/
 .vscode/
 desktop.ini
+.git
