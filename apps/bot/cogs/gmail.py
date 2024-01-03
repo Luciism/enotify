@@ -59,5 +59,5 @@ class Gmail(commands.Cog):
         self.rewatch_inboxes.start()
 
 
-async def setup(client: commands.Bot) -> None:
+async def setup(client: Client) -> None:
     await client.add_cog(Gmail(client))

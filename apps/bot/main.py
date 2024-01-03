@@ -14,7 +14,8 @@ setup_logging(
 
 client = Client(
     cogs=[
-        'cogs.gmail'
+        'cogs.gmail',
+        'cogs.commands.help'
     ]
 )
 
