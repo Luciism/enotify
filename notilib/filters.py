@@ -4,7 +4,7 @@ from typing import Literal
 from asyncpg import Connection
 
 from .common import WebmailServiceLiteral
-from .database import Database, ensure_connection
+from .database import ensure_connection
 
 
 class EmailNotificationFilters:
@@ -115,7 +115,7 @@ class EmailNotificationFilters:
         sender_email_address = sender_email_address.lower()
 
         # check if sender is already whitelisted / blacklisted
-        if sender_email_address in await self.__getattribute__(target_full):
+        if sender_email_address in await getattr(self, target_full):
             return False
 
         await conn.execute(
@@ -135,7 +135,7 @@ class EmailNotificationFilters:
         conn: Connection,
         target: Literal['whitelist', 'blacklist']
     ) -> None:
-       await conn.execute(
+        await conn.execute(
             f'UPDATE email_notification_filters SET {target}ed_senders = '
             f'remove_encrypted_array_element($1, {target}ed_senders, $5) '
             'WHERE discord_id = $2 AND pgp_sym_decrypt(email_address, $5) = $3 '

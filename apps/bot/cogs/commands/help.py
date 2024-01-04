@@ -13,7 +13,8 @@ help_embed = discord.Embed.from_dict({
     "fields": [
         {
             "name": "Links",
-            "value": f"• [Website]({os.getenv('base_url')}/)\n• [Documentation](https://enotify-docs.lucism.dev/)"
+            "value": f"• [Website]({os.getenv('base_url')}/)"
+                     "\n• [Documentation](https://enotify-docs.lucism.dev/)"
         }
     ],
     "thumbnail": {

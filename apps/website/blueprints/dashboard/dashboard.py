@@ -3,8 +3,7 @@ import logging
 from quart import (
     Blueprint,
     render_template,
-    request,
-    redirect
+    request
 )
 
 from notilib import (
