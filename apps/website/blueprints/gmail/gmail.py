@@ -1,6 +1,6 @@
 import os
 import logging
-from urllib.parse import urljoin, unquote as urlunquote
+from urllib.parse import urljoin
 from uuid import uuid4
 
 import jwt
@@ -45,6 +45,11 @@ gmail_bp = Blueprint(
 
 
 def user_creds_arent_intact(user_creds: UserCreds) -> bool:
+    # make sure required scopes have been authorized
+    for scope in gmail.client_creds.scopes:
+        if scope not in user_creds.scopes:
+            return True  # user creds arent intact
+
     return not (
         isinstance(user_creds.get('access_token'), str) and
         isinstance(user_creds.get('refresh_token'), str) and
