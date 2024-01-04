@@ -6,25 +6,36 @@ import os
 from .common import PROJECT_PATH
 
 
-_config_data: dict = None
+class _ConfigData:
+    def __init__(self) -> None:
+        self._data = None
 
+    @staticmethod
+    def resolve_config_file() -> str:
+        file_path = os.getenv('config_file') or '{PROJECT_PATH}/config.json'
+        return file_path.format(PROJECT_PATH=PROJECT_PATH)
 
-def resolve_config_file() -> str:
-    file_path = os.getenv('config_file')
-    return file_path.format(PROJECT_PATH=PROJECT_PATH)
+    def load_config(self) -> None:
+        with open(self.resolve_config_file(), 'r') as datafile:
+            self._data = json.load(datafile)
+
+    @property
+    def data(self) -> dict[str, dict[str, dict]]:
+        if self._data is None:
+            self.load_config()
+        return self._data
+
+__config_data = _ConfigData()
 
 
 def load_config() -> None:
     """Loads the config data from the config file"""
-    global _config_data
-
-    with open(resolve_config_file(), 'r') as datafile:
-        _config_data = json.load(datafile)
+    __config_data.load_config()
 
 
 def reload_config() -> None:
     """Reloads the config data from the config file"""
-    load_config()
+    __config_data.load_config()
 
 
 def config(key_path: str=None):
@@ -32,16 +43,11 @@ def config(key_path: str=None):
     Returns contents of the config `.json` file
     :param key_path: the json path to the desired value for example `key_1.key_2`
     """
-    global _config_data
-
-    if _config_data is None:
-        load_config()
-
-    data = _config_data  # use a separate variable instead of _config_data
+    data = __config_data.data
 
     if key_path:
         for key in key_path.split('.'):
-            data = data[key]  # modify data instead of _config_data
+            data = data[key]
 
     return data
 
