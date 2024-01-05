@@ -44,7 +44,7 @@ def decrypt_session_cookie(session_cookie: str=None) -> dict | Any:
     return signingSerializer.loads(session_cookie)
 
 
-# i couldn't figure out what the fuck to name this function
+# i couldn't figure out what the f to name this function
 def gmail_received_notify_user(res_data: dict) -> None:
     data = res_data.get('message', {}).get('data')
     if not data:
@@ -54,9 +54,20 @@ def gmail_received_notify_user(res_data: dict) -> None:
     email_address: str = decoded_data.get('emailAddress')
 
     if email_address is not None:
+        # build and convert data to string
+        json_data = json.dumps({
+            'action': 'dispatch_event',
+            'event_name': 'gmail_email_receive',
+            'kwargs': {
+                'email_address': email_address
+            }
+        })
+
+        # send data to the bot through a socket in order to dispatch
+        # an event and notify the user
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-            client.connect(('bot', config('global.gmail.receive_socket_port')))
-            client.send(email_address.encode())
+            client.connect(('bot', config('apps.bot.socket_port')))
+            client.send(json_data.encode())
 
 
 class ResponseMsg(TypedDict):

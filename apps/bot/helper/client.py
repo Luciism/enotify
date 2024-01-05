@@ -43,7 +43,7 @@ class Client(commands.Bot):
                     await self.load_extension(cog)
                     logger.info(f'Loaded cog: {cog}')
                 except (commands.errors.ExtensionNotFound, commands.errors.ExtensionFailed):
-                    logger.info(f'Failed to load cog: {cog}')
+                    logger.error(f'Failed to load cog: {cog}')
 
         # sync slash command tree
         await self.tree.sync()
@@ -60,5 +60,5 @@ class Client(commands.Bot):
 
         # dispatch event received from queue
         while True:
-            event_name, *args = await self.queue.get()
-            self.dispatch(event_name, *args)
+            event_name, args, kwargs = await self.queue.get()
+            self.dispatch(event_name, *args, **kwargs)

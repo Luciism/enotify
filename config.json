@@ -1,12 +1,11 @@
 {
   "apps": {
-    "bot": {},
+    "bot": {
+      "socket_port": 15268
+    },
     "website": {}
   },
   "global": {
-    "gmail": {
-      "receive_socket_port": 15268
-    },
     "webmail_services": ["gmail"],
     "links": {
       "discord_server": "https://discord.gg/87YHMGEDKH",

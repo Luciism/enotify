@@ -20,6 +20,8 @@ class Gmail(commands.Cog):
         try:
             email = await gmail.retrieve_new_email(email_address)
         except InvalidRefreshTokenError:
+            await gmail.set_credentials_validity(email_address, valid=False)
+            logging.debug('Failed to refresh user credentials')
             return  # user credentials couldn't be refreshed
 
         # false alarm (latest email has already been notified)
