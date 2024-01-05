@@ -1,7 +1,7 @@
 import asyncio
 import json
-import socket
 import logging
+import socket
 
 import discord
 
@@ -13,7 +13,16 @@ logger = logging.getLogger(__name__)
 _socket_is_active = False
 
 
-def start_socket_listener(client: discord.Client, queue: asyncio.Queue):
+async def _dispatch_event(
+    client: discord.Client,
+    event_name: str,
+    args: list,
+    kwargs: dict
+) -> None:
+    client.dispatch(event_name, *args, **kwargs)
+
+
+def start_socket_listener(client: discord.Client):
     # make sure function only gets run once
     global _socket_is_active
     if _socket_is_active:
@@ -39,12 +48,11 @@ def start_socket_listener(client: discord.Client, queue: asyncio.Queue):
             match json_data.get('action'):
                 case 'dispatch_event':
                     asyncio.run_coroutine_threadsafe(
-                        coro=queue.put(
-                            item=(
-                                json_data.get('event_name'),
-                                json_data.get('args', []),
-                                json_data.get('kwargs', {})
-                            )
+                        coro=_dispatch_event(
+                            client=client,
+                            event_name=json_data.get('event_name'),
+                            args=json_data.get('args', []),
+                            kwargs=json_data.get('kwargs', {})
                         ),
                         loop=client.loop
                     )

@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from threading import Thread
 
@@ -24,17 +23,11 @@ class Client(commands.Bot):
         )
 
         self.cog_list = cogs
-        self._queue = None
 
-    @property
-    def queue(self) -> asyncio.Queue:
-        if self._queue is None:
-            self._queue = asyncio.Queue()
-        return self._queue
 
     async def setup_hook(self):
         # launch gmail email received socket listener in different thread
-        Thread(target=start_socket_listener, args=(self, self.queue)).start()
+        Thread(target=start_socket_listener, args=(self,)).start()
 
         # load passed cogs
         if self.cog_list is not None:
@@ -57,8 +50,3 @@ class Client(commands.Bot):
                 type=discord.ActivityType.watching
             )
         )
-
-        # dispatch event received from queue
-        while True:
-            event_name, args, kwargs = await self.queue.get()
-            self.dispatch(event_name, *args, **kwargs)
