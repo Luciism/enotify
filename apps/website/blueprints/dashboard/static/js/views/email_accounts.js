@@ -534,7 +534,7 @@ function buildEmailAccountElement(emailAccountData) {
               <div class="settings-option-text-container">
                 <p class="settings-option-title">Manage Sender Whitelist</p>
                 <p class="settings-option-description">
-                  Customize which emails you recieve notifications for by whitelisting certain senders
+                  Customize which emails you receive notifications for by whitelisting certain senders
                 </p>
               </div>
               <iconify-icon icon="mingcute:right-line"></iconify-icon>
@@ -548,7 +548,7 @@ function buildEmailAccountElement(emailAccountData) {
               <div class="settings-option-text-container">
                 <p class="settings-option-title">Manage Sender Blacklist</p>
                 <p class="settings-option-description">
-                  Customize which emails you don't recieve notifications for by blacklisting certain senders
+                  Customize which emails you don't receive notifications for by blacklisting certain senders
                 </p>
               </div>
               <iconify-icon icon="mingcute:right-line"></iconify-icon>
