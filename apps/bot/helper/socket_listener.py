@@ -10,23 +10,24 @@ from notilib import config
 
 logger = logging.getLogger(__name__)
 
-received_listener_running = False
+_socket_is_active = False
 
 
-def start_gmail_received_listener(client: discord.Client, queue: asyncio.Queue):
+def start_socket_listener(client: discord.Client, queue: asyncio.Queue):
     # make sure function only gets run once
-    global received_listener_running
-    if received_listener_running:
+    global _socket_is_active
+    if _socket_is_active:
         return
-    received_listener_running = True
+    _socket_is_active = True
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.bind(('0.0.0.0', config('apps.bot.socket_port')))
         server.listen()
 
         while True:
-            conn, _ = server.accept()
+            conn = server.accept()[0]
 
+            # decode data sent through socket and parse into dict
             try:
                 data = conn.recv(1024).decode()
                 json_data: dict = json.loads(data)
@@ -34,6 +35,7 @@ def start_gmail_received_listener(client: discord.Client, queue: asyncio.Queue):
                 logger.error(f'Failed to decode incoming json data from socket: {data}')
                 continue
 
+            # execute certain action based on received data
             match json_data.get('action'):
                 case 'dispatch_event':
                     asyncio.run_coroutine_threadsafe(

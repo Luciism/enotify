@@ -5,7 +5,7 @@ from threading import Thread
 import discord
 from discord.ext import commands
 
-from .gmail.listeners import start_gmail_received_listener
+from .socket_listener import start_socket_listener
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class Client(commands.Bot):
 
     async def setup_hook(self):
         # launch gmail email received socket listener in different thread
-        Thread(target=start_gmail_received_listener, args=(self, self.queue)).start()
+        Thread(target=start_socket_listener, args=(self, self.queue)).start()
 
         # load passed cogs
         if self.cog_list is not None:

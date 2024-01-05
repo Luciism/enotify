@@ -2,6 +2,7 @@ from discord import Embed
 
 from notilib.email_clients.gmail import Email
 
+
 def build_gmail_received_embed(email_address: str, email: Email) -> Embed:
     """
     Builds an email received embed from the provided email data
