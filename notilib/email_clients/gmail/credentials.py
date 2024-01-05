@@ -9,6 +9,7 @@ from asyncpg import Connection
 
 from ...exceptions import InvalidRefreshTokenError
 from ...database import ensure_connection
+from ...functions import config
 
 
 logger = logging.getLogger(__name__)
@@ -16,10 +17,7 @@ logger = logging.getLogger(__name__)
 client_creds = ClientCreds(
     client_id=os.getenv('gcloud_client_id'),
     client_secret=os.getenv('gcloud_client_secret'),
-    scopes=[
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/userinfo.email'
-    ],
+    scopes=config('global.gmail.scopes'),
     redirect_uri=os.getenv('gcloud_redirect_uri')
 )
 oauth2 = Oauth2Manager(client_creds=client_creds)

@@ -6,6 +6,12 @@
     "website": {}
   },
   "global": {
+    "gmail": {
+      "scopes": [
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/userinfo.email"
+      ]
+    },
     "webmail_services": ["gmail"],
     "links": {
       "discord_server": "https://discord.gg/87YHMGEDKH",
