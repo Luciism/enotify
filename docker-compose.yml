@@ -6,35 +6,49 @@ services:
       context: ./
       dockerfile: ./apps/bot/Dockerfile
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file:
       - ./.env
     volumes:
       - logs:/app/logs
+    healthcheck:
+      test: ["CMD-SHELL", "python3 /app/bot/healthcheck.py"]
+      interval: 120s
+      retries: 3
+      start_period: 20s
+      timeout: 5s
 
   website:
     build:
       context: ./
       dockerfile: ./apps/website/Dockerfile
     depends_on:
-      - db
-      - bot  # Ensure bot is running before website
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"
     env_file:
       - ./.env
     volumes:
       - logs:/app/logs
+    healthcheck:
+      test: ["CMD-SHELL", "python3 /app/website/healthcheck.py"]
+      interval: 60s
+      retries: 4
+      start_period: 20s
+      timeout: 8s
 
   db:
     image: postgres:15.5-alpine
-    environment:
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: enotify
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 3s
 
 volumes:
   postgres-data:

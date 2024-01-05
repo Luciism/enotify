@@ -24,11 +24,11 @@ class Database:
     _cleanup = None
 
     # define values within so that they can be overridden
-    host = os.getenv('postgres_host')
-    port = os.getenv('postgres_port')
-    database = os.getenv('postgres_database')
-    user = os.getenv("postgres_user")
-    password = os.getenv('postgres_password')
+    host = os.getenv('POSTGRES_HOST')
+    port = os.getenv('POSTGRES_PORT')
+    database = os.getenv('POSTGRES_DB')
+    user = os.getenv('POSTGRES_USER')
+    password = os.getenv('POSTGRES_PASSWORD')
 
     # make sure only one instance exists (singleton)
     def __new__(cls) -> Any:
