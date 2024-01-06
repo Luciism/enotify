@@ -19,12 +19,12 @@ from helper import (
     DiscordUser,
     gmail_received_notify_user,
     next_or_fallback,
-    discord_auth_client
+    discord_auth_client,
+    root_logger
 )
 
 
 logger = logging.getLogger(__name__)
-logger.info('Blueprint registered.')
 
 jwt_client = jwt.PyJWKClient('https://www.googleapis.com/oauth2/v2/certs')
 oauth2 = gmail.oauth2
@@ -42,6 +42,10 @@ gmail_bp = Blueprint(
     static_folder='static',
     static_url_path='/static/'
 )
+
+@gmail_bp.before_app_serving
+def before_app_serving():
+    root_logger.info(f'Blueprint registered: {__name__}')
 
 
 def user_creds_arent_intact(user_creds: UserCreds) -> bool:

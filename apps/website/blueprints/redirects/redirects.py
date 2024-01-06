@@ -1,21 +1,20 @@
-import logging
-
 from quart import (
     Blueprint,
     redirect
 )
 
 from notilib import config
-
-
-logger = logging.getLogger(__name__)
-logger.info('Blueprint registered.')
+from helper import root_logger
 
 
 redirects_bp = Blueprint(
     name='redirects',
     import_name=__name__,
 )
+
+@redirects_bp.before_app_serving
+def before_app_serving():
+    root_logger.info(f'Blueprint registered: {__name__}')
 
 
 @redirects_bp.route('/support')

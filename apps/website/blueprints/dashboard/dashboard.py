@@ -1,5 +1,3 @@
-import logging
-
 from quart import (
     Blueprint,
     render_template,
@@ -15,12 +13,9 @@ from helper import (
     discord_auth_client,
     response_msg,
     is_email_address_valid,
-    page_user_context_data
+    page_user_context_data,
+    root_logger
 )
-
-
-logger = logging.getLogger(__name__)
-logger.info('Blueprint registered.')
 
 
 dashboard_bp = Blueprint(
@@ -30,6 +25,10 @@ dashboard_bp = Blueprint(
     static_folder='static',
     static_url_path='/static/dashboard/'
 )
+
+@dashboard_bp.before_app_serving
+def before_app_serving():
+    root_logger.info(f'Blueprint registered: {__name__}')
 
 
 def redact_email_address(email_address: str) -> str:

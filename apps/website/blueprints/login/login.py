@@ -1,15 +1,9 @@
-import logging
-
 from quart import (
     Blueprint,
     render_template
 )
 
-from helper import default_page_context_data
-
-
-logger = logging.getLogger(__name__)
-logger.info('Blueprint registered.')
+from helper import default_page_context_data, root_logger
 
 
 login_bp = Blueprint(
@@ -19,6 +13,10 @@ login_bp = Blueprint(
     static_folder='static',
     static_url_path='/static/login/'
 )
+
+@login_bp.before_app_serving
+def before_app_serving():
+    root_logger.info(f'Blueprint registered: {__name__}')
 
 
 @login_bp.route('/login')

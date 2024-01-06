@@ -1,13 +1,9 @@
-import logging
 from uuid import uuid4
 
 from quart import Blueprint, redirect, request, session
 
-from helper import next_or_fallback, discord_auth_client
+from helper import next_or_fallback, discord_auth_client, root_logger
 
-
-logger = logging.getLogger(__name__)
-logger.info('Blueprint registered.')
 
 discord_bp = Blueprint(
     name='discord',
@@ -16,6 +12,10 @@ discord_bp = Blueprint(
     static_folder='static',
     static_url_path='/static/'
 )
+
+@discord_bp.before_app_serving
+def before_app_serving():
+    root_logger.info(f'Blueprint registered: {__name__}')
 
 
 @discord_bp.route('/discord/authorize')

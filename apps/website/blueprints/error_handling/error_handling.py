@@ -1,5 +1,3 @@
-import logging
-
 from quart import Blueprint, render_template, redirect
 
 from helper import (
@@ -7,12 +5,9 @@ from helper import (
     UserNotLoggedInError,
     response_msg,
     default_page_context_data,
-    request
+    request,
+    root_logger
 )
-
-
-logger = logging.getLogger(__name__)
-logger.info('Blueprint registered.')
 
 
 error_handling_bp = Blueprint(
@@ -22,6 +17,10 @@ error_handling_bp = Blueprint(
     static_folder='static',
     static_url_path='/static/error_handling/'
 )
+
+@error_handling_bp.before_app_serving
+def before_app_serving():
+    root_logger.info(f'Blueprint registered: {__name__}')
 
 
 @error_handling_bp.route('/error/<string:error>')
