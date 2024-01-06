@@ -1,5 +1,6 @@
 import logging
 
+from aiogoogle import AuthError
 from discord.ext import commands, tasks
 
 from notilib import InvalidRefreshTokenError
@@ -19,7 +20,10 @@ class Gmail(commands.Cog):
     async def on_gmail_email_receive(self, email_address: str) -> None:
         try:
             email = await gmail.retrieve_new_email(email_address)
-        except InvalidRefreshTokenError:
+        except (InvalidRefreshTokenError, AuthError) as exc:
+            if isinstance(exc, AuthError):
+                await gmail.set_credentials_validity(email_address, valid=False)
+
             logging.debug('Failed to refresh user credentials')
             return  # user credentials couldn't be refreshed
 

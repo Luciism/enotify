@@ -90,6 +90,11 @@
       "message": "There was a problem processing your authentication request.",
       "description": "Oops! It seems like there's a problem on our end. Please try again. If the issue persists, don't hesitate to contact our support team. We're here to help!",
       "success": false, "color": "red"
+    },
+    "missing_scopes_gmail": {
+      "message": "There was a problem processing your authentication request.",
+      "description": "Oops! It looks like the necessary permissions weren't granted. Please make sure to check the box for 'View your email messages and settings' on the Google authentication page and try again. If you're still having trouble, our support team is here to help!",
+      "success": false, "color": "red"
     }
   }
 }
