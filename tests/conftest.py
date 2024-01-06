@@ -34,11 +34,6 @@ async def conn():
         pass
 
 
-def _load_sql_from_file(filename: str):
-    with open(f'{PROJECT_PATH}/schema/{filename}') as file:
-        return file.read()
-
-
 @pytest_asyncio.fixture(scope='session', autouse=True)
 async def database_schema_setup_and_teardown():
     conn: Connection
@@ -50,9 +45,7 @@ async def database_schema_setup_and_teardown():
         await conn.execute('DROP SCHEMA IF EXISTS public CASCADE')
         await conn.execute('CREATE SCHEMA public')
 
-        await conn.execute(_load_sql_from_file('tables.sql'))
-        await conn.execute(_load_sql_from_file('functions.sql'))
-        await conn.execute(_load_sql_from_file('extensions.sql'))
+        await db.setup_schema(conn=conn)
 
     yield
 

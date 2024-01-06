@@ -9,8 +9,35 @@ from typing import Any, Coroutine
 import asyncpg
 from dotenv import load_dotenv; load_dotenv()
 
+from .common import PROJECT_PATH
+
 
 logger = logging.getLogger(__name__)
+
+
+def ensure_connection(func):
+    """
+    Decorator that ensures a database connection is resolved.
+    If the `conn` parameter is `None`, a new connection will be acquired,
+    otherwise the passed `conn` parameter connection will be used.
+    """
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        conn = kwargs.get('conn')
+        if conn:  # use provided connection
+            return await func(*args, **kwargs)
+
+        pool = await Database().connect()
+
+        async with pool.acquire() as conn:  # otherwise, acquire new connection
+            kwargs['conn'] = conn
+            return await func(*args, **kwargs)
+    return wrapper
+
+
+def _load_sql_from_file(filename: str):
+    with open(f'{PROJECT_PATH}/schema/{filename}') as file:
+        return file.read()
 
 
 class Database:
@@ -94,21 +121,9 @@ class Database:
             await self._cleanup()
 
 
-def ensure_connection(func):
-    """
-    Decorator that ensures a database connection is resolved.
-    If the `conn` parameter is `None`, a new connection will be acquired,
-    otherwise the passed `conn` parameter connection will be used.
-    """
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        conn = kwargs.get('conn')
-        if conn:  # use provided connection
-            return await func(*args, **kwargs)
-
-        pool = await Database().connect()
-
-        async with pool.acquire() as conn:  # otherwise, acquire new connection
-            kwargs['conn'] = conn
-            return await func(*args, **kwargs)
-    return wrapper
+    @staticmethod
+    @ensure_connection
+    async def setup_schema(conn: asyncpg.Connection=None) -> None:
+        await conn.execute(_load_sql_from_file('tables.sql'))
+        await conn.execute(_load_sql_from_file('functions.sql'))
+        await conn.execute(_load_sql_from_file('extensions.sql'))
