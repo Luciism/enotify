@@ -18,7 +18,7 @@ client_creds = ClientCreds(
     client_id=os.getenv('gcloud_client_id'),
     client_secret=os.getenv('gcloud_client_secret'),
     scopes=config('global.gmail.scopes'),
-    redirect_uri=os.getenv('gcloud_redirect_uri')
+    redirect_uri=os.getenv('base_url') + '/gmail/callback'
 )
 oauth2 = Oauth2Manager(client_creds=client_creds)
 
