@@ -54,4 +54,4 @@ async def close_db_pool():
 
 # ---------------------------- RUN ---------------------------- #
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True, port=8000)
+    app.run(host="0.0.0.0", debug=True, port=int(os.getenv('website_port')))

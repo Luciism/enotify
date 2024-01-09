@@ -27,7 +27,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8000:8000"
+      - "${website_port}:8000"
     env_file:
       - ./.env
     volumes:
