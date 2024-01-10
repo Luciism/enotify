@@ -52,5 +52,6 @@ async def discord_callback_route():
 
 @discord_bp.route('/logout')
 async def logout_route():
-    del session['discord_credentials']  # delete discord credentials from session
+    if session.get('discord_credentials'):
+        del session['discord_credentials']  # delete discord credentials from session
     return redirect('/')
