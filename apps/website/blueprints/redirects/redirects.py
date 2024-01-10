@@ -1,3 +1,5 @@
+import os
+
 from quart import (
     Blueprint,
     redirect
@@ -23,4 +25,11 @@ async def support_route():
 
 @redirects_bp.route('/invite')
 async def invite_route():
-    return redirect(config('global.links.invite'))
+    client_id = os.getenv('bot_client_id')
+
+    invite_url = (
+        f'https://discord.com/api/oauth2/authorize?client_id={client_id}'
+        f'&permissions={config("apps.bot.invite_url_permissions")}&scope=bot'
+    )
+
+    return redirect(invite_url)

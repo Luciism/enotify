@@ -1,7 +1,8 @@
 {
   "apps": {
     "bot": {
-      "socket_port": 15268
+      "socket_port": 15268,
+      "invite_url_permissions": 274877941824
     },
     "website": {}
   },
@@ -14,8 +15,7 @@
     },
     "webmail_services": ["gmail"],
     "links": {
-      "discord_server": "https://discord.gg/87YHMGEDKH",
-      "invite": "https://discord.com/api/oauth2/authorize?client_id=1156592354334089226&permissions=274877941824&scope=bot"
+      "discord_server": "https://discord.gg/87YHMGEDKH"
     }
   }
 }
