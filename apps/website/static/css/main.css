@@ -7,6 +7,7 @@
 
 :root {
   --text: #fffafa;
+  --text-secondary: #d9d9d9;
   --background: #1a1919;
   --background-secondary: #212020;
   --primary: #f95656;
@@ -63,6 +64,10 @@ code {
   color: var(--text);
   border-radius: 5px;
   text-decoration: none;
+}
+
+.padded-btn.thick {
+  padding: 0.55rem 1.7rem;
 }
 
 .content-wrapper {

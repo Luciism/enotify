@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {% include 'components/head.html' %}
+    <meta name="description" content="">
+
+    <title>Home</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/index.css') }}">
+
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ url_for('static', filename='assets/branding/logo.svg') }}"
+    />
+  </head>
+  <body>
+    {% include 'components/header.html' %}
+
+    <div class="content-wrapper">
+      <section class="intro-section">
+        <div class="intro-text">
+          <h1>Helping you stay <br/><span>CONNECTED</span></h1>
+          <p>Receive alerts for new emails from the comfort of your discord DMs.</p>
+          <a href="https://enotify-docs.lucism.dev" class="get-started-btn padded-btn thick">
+            Get Started
+          </a>
+        </div>
+        <img
+          src="{{ url_for('.static', filename='assets/images/email-to-discord.png') }}"
+          alt="From email to discord"
+          loading="lazy"
+        >
+      </section>
+
+      <section class="info-section">
+        <div class="info-container">
+          <h2>Fast</h2>
+          <p>
+            Never miss another meeting or assignment. Enotify delivers
+            an email alert within 10 seconds of an new incoming email.
+          </p>
+          <img
+            src="{{ url_for('.static', filename='assets/images/email-alert.png') }}"
+            alt="Email alert"
+           loading="lazy"
+          >
+        </div>
+
+        <div class="info-container">
+          <h2>Scalable</h2>
+          <p>
+            Don't enjoy the hassle of manually checking multiple email
+            addresses for new emails? That's okay! With Enotify, you
+            can add as many email addresses as you would like!
+          </p>
+          <img
+            src="{{ url_for('.static', filename='assets/images/email-accounts.png') }}"
+            alt="Email accounts"
+            loading="lazy"
+          >
+        </div>
+
+        <div class="info-container">
+          <h2>Customizable</h2>
+          <p>
+            Filter new email alerts exactly to your liking with our sender
+            whitelist and sender blacklist features!
+          </p>
+          <img
+            src="{{ url_for('.static', filename='assets/images/sender-whitelist.png') }}"
+            alt="Sender whitelist"
+            loading="lazy"
+          >
+        </div>
+      </section>
+
+    </div>
+
+  </body>
+</html>
