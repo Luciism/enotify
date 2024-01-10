@@ -2,7 +2,8 @@
   "apps": {
     "bot": {
       "socket_port": 15268,
-      "invite_url_permissions": 274877941824
+      "invite_url_permissions": 274877941824,
+      "log_level": 20
     },
     "website": {}
   },

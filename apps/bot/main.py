@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 from helper import Client
-from notilib import setup_logging, PROJECT_PATH
+from notilib import setup_logging, config, PROJECT_PATH
 
 
 load_dotenv(f'{PROJECT_PATH}/.env')
@@ -20,4 +20,8 @@ client = Client(
 )
 
 if __name__ == '__main__':
-    client.run(os.getenv('bot_token'), root_logger=True, log_level=10)
+    client.run(
+        token=os.getenv('bot_token'),
+        root_logger=True,
+        log_level=config('apps.bot.log_level')
+    )
