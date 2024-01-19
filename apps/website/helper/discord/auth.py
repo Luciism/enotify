@@ -238,9 +238,10 @@ class DiscordOauthClient:
 
         expires_at: int = discord_credentials.get('expires_at')
 
+        refresh_token: str = discord_credentials.get('refresh_token')
+
         # access token has not expired
         if not datetime.utcnow().timestamp() >= expires_at:
-            refresh_token: str = discord_credentials.get('refresh_token')
             access_token: str = discord_credentials.get('access_token')
 
             user = await DiscordOauthClient.fetch_discord_user(access_token, cache=True)
