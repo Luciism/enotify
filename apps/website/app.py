@@ -1,7 +1,7 @@
 import os
 import logging
 
-from quart import Quart
+from quart import Quart, jsonify
 from dotenv import load_dotenv; load_dotenv()
 
 from notilib import Database, setup_logging, PROJECT_PATH
@@ -39,6 +39,13 @@ try:
     app.register_blueprint(dev_endpoints_bp)
 except ImportError:
     pass
+
+@app.get("/ping")
+def ping_route():
+    res = jsonify({"message": "pong"})
+    res.headers.set('Access-Control-Allow-Origin', '*')
+    return res
+
 
 # -------------------------- DATABASE -------------------------- #
 db = Database()
