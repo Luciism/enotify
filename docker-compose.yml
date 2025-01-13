@@ -5,6 +5,7 @@ services:
     build:
       context: ./
       dockerfile: ./apps/bot/Dockerfile
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
@@ -23,6 +24,7 @@ services:
     build:
       context: ./
       dockerfile: ./apps/website/Dockerfile
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
@@ -41,6 +43,7 @@ services:
 
   db:
     image: postgres:15.5-alpine
+    restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./schema:/docker-entrypoint-initdb.d
