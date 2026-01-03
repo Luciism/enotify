@@ -21,6 +21,10 @@ def build_gmail_received_embed(email_address: str, email: Email) -> Embed:
     # build embed
     url = f'https://mail.google.com/mail/u/{email_address}/#inbox/{email.id}'
 
+    # New discord bug causes hyperlinked embed titles with email addresses wrapped in <>
+    # to crash the client
+    sender = sender.replace("<", "").replace(">", "")
+
     embed = Embed(title=f'From ({sender})', url=url)
     embed.add_field(name='Recipient', value=f'||{recipient}||')  # spoiler
     embed.add_field(name='Subject', value=subject, inline=False)
