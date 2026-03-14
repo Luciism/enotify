@@ -9,7 +9,7 @@ colorlog==6.7.0
 cryptography>=41.0.7
 discord.py==2.2.3
 quart>=0.20.0
-pyjwt==2.8.0
+pyjwt==2.12.0
 python-dotenv
 
 pytest==7.4.0
