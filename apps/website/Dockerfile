@@ -6,12 +6,6 @@ RUN pip install uv
 COPY ./pyproject.toml ./uv.lock ./
 RUN uv sync --group=website --frozen
 
-# COPY ./apps/website/requirements.txt website/requirements.txt
-# RUN pip install -r website/requirements.txt
-#
-# COPY ./notilib/requirements.txt notilib/requirements.txt
-# RUN pip install -r notilib/requirements.txt
-
 COPY ./config.json .
 COPY ./apps/website website
 COPY ./notilib notilib

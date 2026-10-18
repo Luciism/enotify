@@ -35,9 +35,22 @@ website = [
     "hypercorn>=0.18.0"
 ]
 
+health = [
+    { include-group = "notilib" },
+    "fastapi[standard]>=0.143.3",
+    "psycopg[binary]>=3.3.6",
+]
+
+tests = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.1"
+]
+
 all = [
     { include-group = "notilib" },
     { include-group = "bot" },
     { include-group = "website" },
+    { include-group = "health" },
+    { include-group = "tests" },
 ]
 
