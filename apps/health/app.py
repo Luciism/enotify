@@ -1,3 +1,4 @@
+import asyncio
 import os
 import json
 import socket
@@ -7,7 +8,7 @@ from collections.abc import Awaitable
 
 import psycopg
 from aiohttp import ClientSession, ClientError, ClientTimeout
-from fastapi import FastAPI, Response, Request
+from fastapi import FastAPI, Response, Request, WebSocket
 
 from notilib import config
 
@@ -23,7 +24,7 @@ if API_KEY is None:
 def is_ready():
     return Response(status_code=200)
 
-class StatusEnum(Enum):
+class StatusEnum(str, Enum):
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -56,7 +57,7 @@ def get_bot_status() -> StatusEnum:
             client.connect(('bot', config('apps.bot.socket_port')))
             _ = client.send(json_data.encode())
             return StatusEnum.HEALTHY
-    except ConnectionError:
+    except (ConnectionError, OSError):
         return StatusEnum.UNHEALTHY
 
 async def get_website_status() -> StatusEnum:
@@ -90,3 +91,26 @@ async def get_health() -> dict[str, dict[str, StatusEnum]]:
         "database": await get_postgres_status(),
     }}
 
+
+@app.websocket("/health")
+async def send_health_periodically(websocket: WebSocket):
+    api_key = websocket.headers.get("X-Api-Key")
+    if api_key != API_KEY:
+        await websocket.close(1008, "Unauthorized")
+        return
+
+    interval = 5
+    try:
+        interval = float(websocket.query_params.get("interval", interval))
+    except (ValueError, TypeError):
+        pass
+
+    # Restrict to between 0.5
+    interval = min(max(interval, 0.5), 60*60)
+
+    await websocket.accept()
+
+    while True:
+        health = await get_health()
+        await websocket.send_json(health)
+        await asyncio.sleep(interval)
