@@ -44,7 +44,7 @@ async def get_postgres_status() -> StatusEnum:
 
             if await cur.fetchone() == (1,):
                 return StatusEnum.HEALTHY
-    except psycopg.Error:
+    except (psycopg.Error, TimeoutError):
         pass
 
     return StatusEnum.UNHEALTHY
@@ -57,7 +57,7 @@ def get_bot_status() -> StatusEnum:
             client.connect(('bot', config('apps.bot.socket_port')))
             _ = client.send(json_data.encode())
             return StatusEnum.HEALTHY
-    except (ConnectionError, OSError):
+    except (ConnectionError, OSError, TimeoutError):
         return StatusEnum.UNHEALTHY
 
 async def get_website_status() -> StatusEnum:
@@ -66,7 +66,7 @@ async def get_website_status() -> StatusEnum:
             res = await session.get("http://website:8000/", timeout=ClientTimeout(total=2))
             if res.status == 200:
                 return StatusEnum.HEALTHY
-        except ClientError as exc:
+        except (ClientError, OSError, TimeoutError) as exc:
             print(exc)
 
         return StatusEnum.UNHEALTHY
